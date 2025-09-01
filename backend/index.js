@@ -1,32 +1,27 @@
 const express = require("express");
-const pool = require("./database/db"); // import db.js
+const supabase = require("./db"); // ✅ correct import
 
 const app = express();
 const PORT = 3000;
 
-// middleware
-app.use(express.json());
+app.get("/", async (req, res) => {
+    const { data, error } = await supabase
+        .from("feedback")  // 👈 query your real table
+        .select("*")
+        .limit(5);         // grab just a few rows for testing
 
-// basic route
-app.get("/", (req, res) => {
-    res.send("Hello, Express is running 🚀");
-});
-
-// db test route
-app.get("/db-test", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT NOW()");
-        res.json({
-            message: "✅ Database query successful!",
-            time: result.rows[0]
-        });
-    } catch (err) {
-        console.error("❌ Query error:", err.message);
-        res.status(500).json({ error: "Database query failed" });
+    if (error) {
+        console.error("❌ Supabase error:", error.message);
+        return res.status(500).send("Connection failed!");
     }
+
+    res.send({
+        message: "✅ Connected to Supabase!",
+        sampleRows: data,
+    });
 });
 
-// start server
+
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
