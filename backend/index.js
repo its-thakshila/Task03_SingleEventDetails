@@ -4,7 +4,7 @@ const supabase = require("./db"); // correct import
 const app = express();
 const PORT = 3000;
 
-// TEST ROUTE (Optional - you can keep or remove this)
+// TEST ROUTE 
 app.get("/", async (req, res) => {
   const { data, error } = await supabase
     .from("events")
@@ -122,7 +122,7 @@ app.get("/api/events/:id/end_time", async (req, res) => {
   }
 });
 
-// ROUTE: Get only date (extracted from start_time)
+// ROUTE: Get only date 
 app.get("/api/events/:id/date", async (req, res) => {
   const { id } = req.params;
   try {
