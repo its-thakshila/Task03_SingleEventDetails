@@ -2,12 +2,14 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
 const supabase = require("./db"); // correct import
+const cors = require("cors"); // ✨ Add this line to import the cors middleware
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors()); // ✨ Add this line to enable CORS for all routes
 
 // 🔹 Middleware to set a userId cookie if it doesn't exist
 app.use((req, res, next) => {
