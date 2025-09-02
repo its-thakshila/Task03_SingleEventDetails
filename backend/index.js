@@ -36,10 +36,11 @@ const fieldMap = {
   location: "location",
   date: "start_time",
   start_time: "start_time",
-  end_time: "end_time"
+  end_time: "end_time",
+  interested_count: "interested_count", // ✅ fixed
 };
 
-// Get single event by ID (all fields + photos)
+// Get single event by ID (with photos)
 app.get("/api/events/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -52,22 +53,23 @@ app.get("/api/events/:id", async (req, res) => {
         location,
         start_time,
         end_time,
-        event_photos (photo_url)
+        interested_count,
+        event_photos(photo_url)
       `)
       .eq("event_id", id)
-      .limit(1);
+      .single(); // ✅ Cleaner than limit(1)
 
     if (error) throw error;
-    if (!data || data.length === 0) return res.status(404).json({ error: "Event not found" });
+    if (!data) return res.status(404).json({ error: "Event not found" });
 
-    res.json(data[0]);
+    res.json(data);
   } catch (err) {
     console.error("❌ Error fetching event:", err.message);
     res.status(500).json({ error: "Failed to fetch event" });
   }
 });
 
-// Get specific event fields
+// Get specific fields dynamically
 Object.keys(fieldMap).forEach((field) => {
   app.get(`/api/events/:id/${field}`, async (req, res) => {
     const { id } = req.params;
@@ -78,16 +80,16 @@ Object.keys(fieldMap).forEach((field) => {
         .from("events")
         .select(selectField)
         .eq("event_id", id)
-        .limit(1);
+        .single();
 
       if (error) throw error;
-      if (!data || data.length === 0) return res.status(404).json({ error: "Event not found" });
+      if (!data) return res.status(404).json({ error: "Event not found" });
 
-      let result = {};
+      const result = {};
       if (field === "date") {
-        result.date = data[0].start_time ? data[0].start_time.split("T")[0] : null;
+        result.date = data.start_time ? data.start_time.split("T")[0] : null;
       } else {
-        result[field] = data[0][selectField];
+        result[field] = data[selectField];
       }
 
       res.json(result);
@@ -163,7 +165,7 @@ app.get("/api/interested/:user_id", async (req, res) => {
   }
 });
 
-// Remove an event from interested list
+// Remove from interested list
 app.delete("/api/interested", async (req, res) => {
   const { user_id, event_id } = req.body || {};
   if (!user_id || !event_id) {
