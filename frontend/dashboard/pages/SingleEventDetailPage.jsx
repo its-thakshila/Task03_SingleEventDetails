@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import '../src/SingleEventDetailPage.css';
 
 // This is the base URL for the backend API.
 // It is dynamically provided by the environment to ensure the frontend can communicate with the backend correctly.
