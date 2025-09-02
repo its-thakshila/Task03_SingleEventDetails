@@ -1,19 +1,17 @@
-import { useState } from 'react'
-import Eventcard   from "../components/eventcard.jsx";
-import './App.css'
+import { Routes, Route, useParams } from "react-router-dom";
 import FeedbackCard from "../components/feedbackcard.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return(
-    <div className="App">
-      <h1 className="text-3xl font-bold underline">
-      </h1>
-      <Eventcard event={{name: "Sample Event", description: "This is a sample event description.", date: "2024-06-01", image: "https://via.placeholder.com/400x200"}} />
-        <FeedbackCard></FeedbackCard>
-    </div>
-  )
+function EventPage() {
+  const { eventId } = useParams();            // <-- path param
+  return <FeedbackCard eventId={eventId} />;
 }
 
-export default App
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/event/:eventId" element={<EventPage />} />
+      {/* optional: a default route */}
+      <Route path="*" element={<div>Open /event/&lt;uuid&gt; to rate</div>} />
+    </Routes>
+  );
+}

@@ -197,3 +197,31 @@ router.delete("/events/:eventId/ratings/me", async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /events/:eventId/ratings/all?limit=50&offset=0
+router.get("/events/:eventId/ratings/all", async (req, res) => {
+  const { eventId } = req.params;
+  const limit = Math.min(Number(req.query.limit ?? 50), 200);
+  const offset = Math.max(Number(req.query.offset ?? 0), 0);
+
+  try {
+    const { data: rows, error } = await supabase
+      .from("feedback")
+      .select("feedback_id,event_id,text_content,created_at")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1); // pagination
+
+    if (error) throw error;
+
+    const items = (rows || []).map(parseRatingRow).filter(Boolean);
+
+    res.json({
+      total: items.length + offset,   // simple total for the current page
+      items
+    });
+  } catch (e) {
+    console.error("ratings/all error:", e);
+    res.status(500).json({ error: "server error" });
+  }
+});

@@ -6,7 +6,10 @@ const ratingsRouter = require("./ratings.routes"); // ✅ correct import
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",   // your Vite dev URL
+  credentials: true                  // allow cookies
+}));
 app.use(express.json());
 
 // 👉 mount ratings endpoints
