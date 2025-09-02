@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import '../src/SingleEventDetailPage.css';
+import ArrowLeftIcon from '../icons/arrow-left.svg';
 
 // SVG Icon imports - Add your icon import URLs here
 import ClockIcon from '../icons/clock.svg';
@@ -163,6 +164,7 @@ export default function SingleEventDetailPage() {
     <div className="event-detail-container">
       {/* A link to go back to the home page for easy navigation. */}
       <a href="/" className="back-button">
+      <img src={ArrowLeftIcon} alt="Back" className="back-icon" />
         Back
       </a>
       
