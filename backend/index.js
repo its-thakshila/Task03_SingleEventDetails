@@ -211,7 +211,6 @@ app.delete("/api/interested", async (req, res) => {
   }
 });
 
-// interested count
 // Get interested count for a specific event
 app.get("/api/events/:id/interested_counts", async (req, res) => {
   const { id } = req.params;
@@ -232,6 +231,37 @@ app.get("/api/events/:id/interested_counts", async (req, res) => {
   }
 });
 
+
+// Get status of a specific event
+app.get("/api/events/:id/status", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("start_time, end_time")
+      .eq("event_id", id)
+      .limit(1);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return res.status(404).json({ error: "Event not found" });
+
+    const { start_time, end_time } = data[0];
+
+    const now = new Date();
+    const start = new Date(start_time);
+    const end = new Date(end_time);
+
+    let status = "Upcoming";
+    if (now >= start && now <= end) status = "Ongoing";
+    else if (now > end) status = "Ended";
+
+    res.json({ event_id: id, status });
+  } catch (err) {
+    console.error(`❌ Failed to fetch status for event ${id}:`, err.message);
+    res.status(500).json({ error: "Failed to fetch event status" });
+  }
+});
 
 
 // ------------------- START SERVER -------------------
