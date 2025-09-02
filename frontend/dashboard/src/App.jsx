@@ -1,17 +1,24 @@
-import { Routes, Route, useParams } from "react-router-dom";
-import FeedbackCard from "../components/feedbackcard.jsx";
-
-function EventPage() {
-  const { eventId } = useParams();            // <-- path param
-  return <FeedbackCard eventId={eventId} />;
-}
+import { Routes, Route, Link } from "react-router-dom";
+import FeedbackPage from "../pages/FeedbackPage.jsx";
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/event/:eventId" element={<EventPage />} />
-      {/* optional: a default route */}
-      <Route path="*" element={<div>Open /event/&lt;uuid&gt; to rate</div>} />
+      {/* home or other team routes */}
+      <Route path="/" element={
+        <div className="p-6">
+          <h1 className="text-xl font-bold">Home</h1>
+          <Link
+            to="/feedback/2"
+            className="text-blue-600 underline"
+          >
+            Go to feedback for sample event
+          </Link>
+        </div>
+      } />
+
+      {/* ✅ feedback page */}
+      <Route path="/feedback/:eventId" element={<FeedbackPage />} />
     </Routes>
   );
 }
