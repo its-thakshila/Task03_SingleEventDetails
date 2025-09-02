@@ -273,7 +273,7 @@ export default function SingleEventDetailPage() {
                     </div>
                 ) : (
                     <div className="no-image-placeholder">
-                        R
+                        No Image Found
                     </div>
                 )}
             </div>
