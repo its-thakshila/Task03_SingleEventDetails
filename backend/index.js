@@ -1,8 +1,16 @@
 const express = require("express");
-const supabase = require("./db"); // ✅ correct import
+const cors = require("cors");
+const supabase = require("./db");
+const ratingsRouter = require("./ratings.routes"); // ✅ correct import
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// 👉 mount ratings endpoints
+app.use(ratingsRouter);
 
 app.get("/", async (req, res) => {
     const { data, error } = await supabase
