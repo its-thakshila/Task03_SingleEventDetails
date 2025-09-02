@@ -68,3 +68,33 @@ body {
   margin: 0;
   line-height: 1.2;
 }
+
+.event-status {
+  display: inline-block;
+  background-color: #000000;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.event-status.ongoing {
+  background-color: #0D6EFD;
+}
+
+.event-status.upcoming {
+  background-color: #0AAF7E;
+}
+
+.event-status.ended {
+  background-color: #D33B65;
+}
+
+.event-description {
+  color: #000000a8;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
