@@ -1,27 +1,38 @@
+// App.jsx
 import { Routes, Route, Link } from 'react-router-dom'
 import SingleEventDetailPage from '../pages/SingleEventDetailPage.jsx'
-import './App.css'
+
+const events = [
+  { id: 1 },
+  { id: 2 },
+  { id: 3 },
+];
 
 function Home() {
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Home</h1>
-      <Link to="/event">
-        <button style={{ padding: '10px 16px', border: '1px solid #333' }}>
-          Go to Event Detail
-        </button>
-      </Link>
+    <div style={{ padding: 16 }}>
+      <h1>Events</h1>
+
+      {/* render cards */}
+      <div style={{ display: 'grid', gap: 12 }}>
+        {events.map(ev => (
+          <Link key={ev.id} to={`/events/${ev.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={{ border: '1px solid #ddd', padding: 12, borderRadius: 8, cursor: 'pointer' }}>
+              <div style={{ fontWeight: 600 }}>{ev.id}</div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
 export default function App() {
   return (
-    <div className="App">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/event" element={<SingleEventDetailPage />} />
-      </Routes>
-    </div>
-  )
+    <Routes>
+      <Route path="/" element={<Home />} />
+      {/* dynamic route: /events/1, /events/2, ... */}
+      <Route path="/events/:id" element={<SingleEventDetailPage />} />
+    </Routes>
+  );
 }
