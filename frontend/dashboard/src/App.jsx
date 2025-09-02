@@ -1,17 +1,27 @@
-import { useState } from 'react'
-import Eventcard   from "../components/eventcard.jsx";
+import { Routes, Route, Link } from 'react-router-dom'
+import SingleEventDetailPage from '../pages/SingleEventDetailPage.jsx'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return(
-    <div className="App">
-      <h1 className="text-3xl font-bold underline">
-      </h1>
-      <Eventcard event={{name: "Sample Event", description: "This is a sample event description.", date: "2024-06-01", image: "https://via.placeholder.com/400x200"}} />
+function Home() {
+  return (
+    <div style={{ padding: 24 }}>
+      <h1>Home</h1>
+      <Link to="/event">
+        <button style={{ padding: '10px 16px', border: '1px solid #333' }}>
+          Go to Event Detail
+        </button>
+      </Link>
     </div>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <div className="App">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/event" element={<SingleEventDetailPage />} />
+      </Routes>
+    </div>
+  )
+}
