@@ -19,6 +19,8 @@ const EventsScreen = () => {
         .select('*')
         .order('start_time', { ascending: true });
 
+      console.log(data); // <-- Add this line
+
       if (error) throw error;
       setEvents(data || []);
     } catch (error) {
