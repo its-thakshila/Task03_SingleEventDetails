@@ -19,10 +19,7 @@ const EventsScreen = () => {
         .select('*')
         .order('start_time', { ascending: true });
 
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -143,14 +140,16 @@ const EventsScreen = () => {
                 </div>
               </div>
 
-              {/* Button pinned to bottom */}
-              <div className="mt-auto pt-4">
-                <button className={`w-full font-medium py-2 px-4 rounded-lg transition-all duration-300 ${
-                  hoveredEvent === event.event_id ? 
-                  'bg-blue-700 text-white shadow-lg transform -translate-y-1' : 
-                  'bg-blue-600 text-white hover:bg-blue-700'
-                }`}>
-                  View Details
+              {/* Three buttons with hover-fill effect */}
+              <div className="mt-4 flex gap-2">
+                <button className="flex-1 py-2 px-4 rounded-lg font-medium text-blue-600 border border-blue-600 bg-transparent hover:bg-blue-600 hover:text-white transition-colors">
+                  Interested
+                </button>
+                <button className="flex-1 py-2 px-4 rounded-lg font-medium text-red-600 border border-red-600 bg-transparent hover:bg-red-600 hover:text-white transition-colors">
+                  Save
+                </button>
+                <button className="flex-1 py-2 px-4 rounded-lg font-medium text-black border border-black bg-transparent hover:bg-black hover:text-white transition-colors">
+                  More
                 </button>
               </div>
             </div>
@@ -158,7 +157,6 @@ const EventsScreen = () => {
         </div>
       )}
 
-      {/* Add custom styles for smooth transitions */}
       <style jsx>{`
         .event-card {
           transition: all 0.3s ease;
