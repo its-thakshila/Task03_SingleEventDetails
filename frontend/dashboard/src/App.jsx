@@ -3,6 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import SingleEventDetailPage from '../pages/SingleEventDetailPage.jsx';
 import EventsScreen from './EventsScreen'; // your dynamic events component
 import './App.css';
+import FeedbackPage from "../pages/FeedbackPage.jsx";
 
 function Home() {
     return (
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             {/* dynamic route for individual event details */}
             <Route path="/events/:id" element={<SingleEventDetailPage />} />
+            <Route path="/events/:id/feedback" element={FeedbackPage}></Route>
         </Routes>
     );
 }
