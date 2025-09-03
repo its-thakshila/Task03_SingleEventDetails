@@ -39,14 +39,18 @@ body {
   display: flex;
   background: white;
   min-height: calc(100vh - 60px);
+  width: 100%;
+  overflow: hidden;
 }
 
 .event-left-section {
-  flex: 1;
+  flex: 0 0 40%;
   padding: 40px 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
+  overflow-y: auto;
 }
 
 .event-header {
@@ -107,6 +111,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
 }
 
 .carousel-container {
@@ -211,6 +216,7 @@ body {
   color: white;
   font-size: 48px;
   font-weight: bold;
+  min-width: 0;
 }
 
 /* Event details grid */
