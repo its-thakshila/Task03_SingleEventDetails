@@ -212,3 +212,41 @@ body {
   font-size: 48px;
   font-weight: bold;
 }
+
+/* Event details grid */
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0;
+}
+
+.detail-icon {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.detail-content {
+  flex: 1;
+}
+
+.detail-label {
+  display: none;
+}
+
+.detail-value {
+  font-size: 16px;
+  color: #1a1a1a;
+  font-weight: 500;
+  line-height: 1.4;
+}
