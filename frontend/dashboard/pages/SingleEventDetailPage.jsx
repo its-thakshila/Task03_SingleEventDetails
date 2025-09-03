@@ -83,7 +83,7 @@ export default function SingleEventDetailPage() {
             }
         };
         if (event) fetchInterestedStatus();
-    }, [eventId, event]);
+    }, [eventId]);
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
