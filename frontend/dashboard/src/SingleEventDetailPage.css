@@ -315,3 +315,36 @@ body {
   font-weight: 600;
   color: #000000aa;
 }
+
+@media (max-width: 768px) {
+    .event-content {
+        flex-direction: column;
+    }
+
+    .photo-carousel {
+        min-height: 250px;
+        order: -1;
+    }
+
+    .event-left-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .event-title {
+        font-size: 24px;
+    }
+
+    .event-description {
+        font-size: 13px;
+    }
+
+    .detail-value{
+        font-size: 15px;
+    }
+
+    .event-status{
+        padding: 4px 12px;
+    }
+}
