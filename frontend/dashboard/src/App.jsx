@@ -1,6 +1,11 @@
+
 // App.jsx
 import { Routes, Route, Link } from 'react-router-dom'
 import SingleEventDetailPage from '../pages/SingleEventDetailPage.jsx'
+import { useState } from 'react'
+import Eventcard   from "../components/eventcard.jsx";
+import EventsScreen from './EventsScreen'; // added 
+import './App.css'
 
 const events = [
   { id: 1 },
@@ -30,9 +35,19 @@ function Home() {
           </Link>
         ))}
       </div>
+
+  return(
+    <div className="App">
+      <h1 className="text-3xl font-bold underline">
+      </h1>
+
+      {/* Add new EventsScreen component */}
+      <EventsScreen/>
+
     </div>
   );
 }
+
 
 export default function App() {
   return (
@@ -43,3 +58,7 @@ export default function App() {
     </Routes>
   );
 }
+
+export default App
+
+
