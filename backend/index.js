@@ -109,6 +109,7 @@ Object.keys(fieldMap).forEach((field) => {
   });
 });
 
+// event photos
 app.get("/api/events/:id/photos", async (req, res) => {
   const { id } = req.params;
   try {
@@ -125,6 +126,8 @@ app.get("/api/events/:id/photos", async (req, res) => {
   }
 });
 
+
+// event status
 app.get("/api/events/:id/status", async (req, res) => {
   const { id } = req.params;
   try {
