@@ -1,13 +1,12 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
-const supabase = require("./db"); // correct import
+const supabase = require("./db");
 const cors = require("cors");
 
 const app = express();
 const PORT = 3000;
 
-// ---- CORS with credentials (front-end default Vite port) ----
 const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 app.use(cors({
   origin: allowedOrigin,
@@ -17,14 +16,15 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Middleware to set a userId cookie if it doesn't exist
+// Set a stable userId cookie if missing
 app.use((req, res, next) => {
   if (!req.cookies.userId) {
     res.cookie("userId", uuidv4(), {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,               // OK for localhost HTTP
-      maxAge: 31536000000,         // 1 year
+      sameSite: "lax", // same-site with localhost:5173 works
+      secure: false,   // OK for local HTTP
+      maxAge: 31536000000, // 1 year
+      path: "/",
     });
   }
   next();
@@ -35,7 +35,6 @@ app.get("/", async (req, res) => {
   try {
     const { data, error } = await supabase.from("events").select("*").limit(8);
     if (error) throw error;
-
     res.send({ message: "✅ Connected to Supabase!", sampleRows: data });
   } catch (err) {
     console.error("❌ Supabase error:", err.message);
@@ -54,7 +53,6 @@ const fieldMap = {
   interested_count: "interested_count",
 };
 
-// Get single event by ID (all fields + photos)
 app.get("/api/events/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -83,12 +81,10 @@ app.get("/api/events/:id", async (req, res) => {
   }
 });
 
-// Get specific event fields
 Object.keys(fieldMap).forEach((field) => {
   app.get(`/api/events/:id/${field}`, async (req, res) => {
     const { id } = req.params;
     const selectField = fieldMap[field];
-
     try {
       const { data, error } = await supabase
         .from("events")
@@ -105,7 +101,6 @@ Object.keys(fieldMap).forEach((field) => {
       } else {
         result[field] = data[0][selectField];
       }
-
       res.json(result);
     } catch (err) {
       console.error(`❌ Error fetching ${field}:`, err.message);
@@ -114,7 +109,6 @@ Object.keys(fieldMap).forEach((field) => {
   });
 });
 
-// Get only photos
 app.get("/api/events/:id/photos", async (req, res) => {
   const { id } = req.params;
   try {
@@ -131,10 +125,8 @@ app.get("/api/events/:id/photos", async (req, res) => {
   }
 });
 
-// Get status of a specific event
 app.get("/api/events/:id/status", async (req, res) => {
   const { id } = req.params;
-
   try {
     const { data, error } = await supabase
       .from("events")
@@ -163,28 +155,38 @@ app.get("/api/events/:id/status", async (req, res) => {
 
 // ------------------- INTERESTED EVENTS -------------------
 
-// Mark event as interested (using cookie userId) and update interested_count
+// Mark event as interested
 app.post("/api/interested", async (req, res) => {
   const { event_id } = req.body;
   const user_id = req.cookies.userId;
-
   if (!event_id) return res.status(400).json({ error: "event_id is required" });
 
   try {
     const { data: existing, error: checkError } = await supabase
       .from("interested_events")
-      .select("*")
+      .select("event_id")
       .eq("user_id", user_id)
-      .eq("event_id", event_id);
-
+      .eq("event_id", event_id)
+      .limit(1);
     if (checkError) throw checkError;
-    if (existing.length > 0) return res.json({ message: "Already marked as interested" });
 
-    const { data: inserted, error: insertError } = await supabase
+    if (existing.length > 0) {
+      // Still return the current count to keep client in sync
+      const { data: eventData, error: fetchError } = await supabase
+        .from("events")
+        .select("interested_count")
+        .eq("event_id", event_id)
+        .single();
+      if (fetchError) throw fetchError;
+      return res.json({
+        message: "Already marked as interested",
+        interested_count: Number(eventData?.interested_count) || 0,
+      });
+    }
+
+    const { error: insertError } = await supabase
       .from("interested_events")
-      .insert([{ user_id, event_id }])
-      .select();
-
+      .insert([{ user_id, event_id }]);
     if (insertError) throw insertError;
 
     const { data: eventData, error: fetchError } = await supabase
@@ -192,60 +194,51 @@ app.post("/api/interested", async (req, res) => {
       .select("interested_count")
       .eq("event_id", event_id)
       .single();
-
     if (fetchError) throw fetchError;
 
-    const newCount = (eventData.interested_count || 0) + 1;
+    const newCount = (Number(eventData?.interested_count) || 0) + 1;
 
     const { error: updateError } = await supabase
       .from("events")
       .update({ interested_count: newCount })
       .eq("event_id", event_id);
-
     if (updateError) throw updateError;
 
-    res.status(201).json({ message: `Event ${event_id} marked as interested`, data: inserted, interested_count: newCount });
+    res.status(201).json({ message: `Event ${event_id} marked as interested`, interested_count: newCount });
   } catch (err) {
     console.error("❌ Failed to mark interested:", err.message);
     res.status(500).json({ error: "Failed to mark event as interested" });
   }
 });
 
-// Remove an event from interested list using cookie userId
+// Remove interested
 app.delete("/api/interested", async (req, res) => {
   const { event_id } = req.body;
   const user_id = req.cookies.userId;
-
   if (!event_id) return res.status(400).json({ error: "event_id is required" });
   if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
 
   try {
-    // Delete interest
     const { error: deleteError } = await supabase
       .from("interested_events")
       .delete()
       .eq("user_id", user_id)
       .eq("event_id", event_id);
-
     if (deleteError) throw deleteError;
 
-    // Fetch current interested_count
     const { data: eventData, error: fetchError } = await supabase
       .from("events")
       .select("interested_count")
       .eq("event_id", event_id)
       .single();
-
     if (fetchError) throw fetchError;
 
-    // Decrement count safely
-    const newCount = Math.max((Number(eventData.interested_count) || 1) - 1, 0);
+    const newCount = Math.max((Number(eventData?.interested_count) || 1) - 1, 0);
 
     const { error: updateError } = await supabase
       .from("events")
       .update({ interested_count: newCount })
       .eq("event_id", event_id);
-
     if (updateError) throw updateError;
 
     res.json({ message: "Event removed from interested list", interested_count: newCount });
@@ -255,11 +248,9 @@ app.delete("/api/interested", async (req, res) => {
   }
 });
 
-// NEW: Check if current user (cookie) is interested in a given event
 app.get("/api/interested/status/:event_id", async (req, res) => {
   const { event_id } = req.params;
   const user_id = req.cookies.userId;
-
   if (!event_id) return res.status(400).json({ error: "event_id is required" });
   if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
 
@@ -270,8 +261,8 @@ app.get("/api/interested/status/:event_id", async (req, res) => {
       .eq("user_id", user_id)
       .eq("event_id", event_id)
       .limit(1);
-
     if (error) throw error;
+
     const interested = Array.isArray(data) && data.length > 0;
     res.json({ event_id: Number(event_id), interested });
   } catch (err) {
@@ -280,7 +271,6 @@ app.get("/api/interested/status/:event_id", async (req, res) => {
   }
 });
 
-// Get all interested events for a user (by param)
 app.get("/api/interested/:user_id", async (req, res) => {
   const { user_id } = req.params;
   try {
@@ -296,7 +286,6 @@ app.get("/api/interested/:user_id", async (req, res) => {
         )
       `)
       .eq("user_id", user_id);
-
     if (error) throw error;
     res.json({ interestedEvents: data });
   } catch (err) {
@@ -305,28 +294,23 @@ app.get("/api/interested/:user_id", async (req, res) => {
   }
 });
 
-// Get interested count for a specific event (direct from events table)
 app.get("/api/events/:id/interested_counts", async (req, res) => {
   const { id } = req.params;
-
   try {
     const { data, error } = await supabase
       .from("events")
       .select("interested_count")
       .eq("event_id", id)
       .single();
-
     if (error) throw error;
     if (!data) return res.status(404).json({ error: "Event not found" });
-
-    res.json({ event_id: id, interested_count: data.interested_count || 0 });
+    res.json({ event_id: id, interested_count: Number(data.interested_count) || 0 });
   } catch (err) {
     console.error(`❌ Failed to fetch interested count for event ${id}:`, err.message);
     res.status(500).json({ error: "Failed to fetch interested count" });
   }
 });
 
-// ------------------- START SERVER -------------------
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
