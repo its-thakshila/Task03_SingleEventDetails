@@ -26,6 +26,8 @@ export default function SingleEventDetailPage() {
     const [status, setStatus] = useState(null);
     // 'currentImageIndex' tracks which image is currently displayed in the carousel.
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    // 'isDescriptionExpanded' tracks if the description is expanded on mobile
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
     // The useParams hook from react-router-dom is used to get the dynamic 'id'
     // from the URL, which we use to identify the specific event to fetch.
@@ -129,6 +131,11 @@ export default function SingleEventDetailPage() {
         setCurrentImageIndex(index);
     };
 
+    // Function to toggle description expansion
+    const toggleDescription = () => {
+        setIsDescriptionExpanded(!isDescriptionExpanded);
+    };
+
     // Conditional rendering for the different states of the component.
     if (loading) {
         return (
@@ -162,11 +169,20 @@ export default function SingleEventDetailPage() {
     // Once the data is fetched and ready, we render the event details.
     return (
         <div className="event-detail-container">
+            {/* Mobile Navigation Bar */}
+            <div className="mobile-nav-bar">
+                <a href="/" className="mobile-back-button">
+                    <img src={ArrowLeftIcon} alt="Back" className="mobile-back-icon" />
+                </a>
+                <h2 className="mobile-nav-title">Details</h2>
+                <div className="mobile-nav-spacer"></div>
+            </div>
+
             {/* The main container for all event details. */}
             <div className="event-content">
                 {/* Left section with event details */}
                 <div className="event-left-section">
-                    {/* A link to go back to the home page for easy navigation. */}
+                    {/* Desktop back button */}
                     <a href="/" className="back-button">
                         <img src={ArrowLeftIcon} alt="Back" className="back-icon" />
                         Back
@@ -182,7 +198,15 @@ export default function SingleEventDetailPage() {
                                 </span>
                             )}
                         </div>
-                        <p className="event-description">{event.description}</p>
+                        <div className="event-description-container">
+                            <p className={`event-description ${isDescriptionExpanded ? 'expanded' : ''}`}>
+                                {event.description}
+                            </p>
+                            {/* Show More/Less button only on mobile */}
+                            <button className="description-toggle" onClick={toggleDescription}>
+                                {isDescriptionExpanded ? 'Less' : 'More'}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="event-details">
