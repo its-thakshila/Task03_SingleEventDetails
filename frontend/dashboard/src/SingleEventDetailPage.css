@@ -250,3 +250,32 @@ body {
   font-weight: 500;
   line-height: 1.4;
 }
+
+/* Rate event button */
+.rate-button {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.rate-button:hover {
+  background-color: rgba(0, 0, 0, 1);
+  transform: translateY(-1px);
+}
+
+.rate-icon {
+  width: 18px;
+  height: 18px;
+}
