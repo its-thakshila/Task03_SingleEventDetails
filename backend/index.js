@@ -7,14 +7,25 @@ const cors = require("cors");
 const app = express();
 const PORT = 3000;
 
+// ---- CORS with credentials (front-end default Vite port) ----
+const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
 
 // Middleware to set a userId cookie if it doesn't exist
 app.use((req, res, next) => {
   if (!req.cookies.userId) {
-    res.cookie("userId", uuidv4(), { httpOnly: true, maxAge: 31536000000 });
+    res.cookie("userId", uuidv4(), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,               // OK for localhost HTTP
+      maxAge: 31536000000,         // 1 year
+    });
   }
   next();
 });
@@ -150,11 +161,6 @@ app.get("/api/events/:id/status", async (req, res) => {
   }
 });
 
-
-
-
-
-
 // ------------------- INTERESTED EVENTS -------------------
 
 // Mark event as interested (using cookie userId) and update interested_count
@@ -198,7 +204,7 @@ app.post("/api/interested", async (req, res) => {
 
     if (updateError) throw updateError;
 
-    res.status(201).json({ message: `Event ${event_id} marked as interested`, data: inserted });
+    res.status(201).json({ message: `Event ${event_id} marked as interested`, data: inserted, interested_count: newCount });
   } catch (err) {
     console.error("❌ Failed to mark interested:", err.message);
     res.status(500).json({ error: "Failed to mark event as interested" });
@@ -242,14 +248,39 @@ app.delete("/api/interested", async (req, res) => {
 
     if (updateError) throw updateError;
 
-    res.json({ message: "Event removed from interested list" });
+    res.json({ message: "Event removed from interested list", interested_count: newCount });
   } catch (err) {
     console.error("❌ Failed to remove event:", err.message);
     res.status(500).json({ error: "Failed to remove event" });
   }
 });
 
-// Get all interested events for a user
+// NEW: Check if current user (cookie) is interested in a given event
+app.get("/api/interested/status/:event_id", async (req, res) => {
+  const { event_id } = req.params;
+  const user_id = req.cookies.userId;
+
+  if (!event_id) return res.status(400).json({ error: "event_id is required" });
+  if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
+
+  try {
+    const { data, error } = await supabase
+      .from("interested_events")
+      .select("event_id")
+      .eq("user_id", user_id)
+      .eq("event_id", event_id)
+      .limit(1);
+
+    if (error) throw error;
+    const interested = Array.isArray(data) && data.length > 0;
+    res.json({ event_id: Number(event_id), interested });
+  } catch (err) {
+    console.error("❌ Failed to fetch interested status:", err.message);
+    res.status(500).json({ error: "Failed to fetch interested status" });
+  }
+});
+
+// Get all interested events for a user (by param)
 app.get("/api/interested/:user_id", async (req, res) => {
   const { user_id } = req.params;
   try {
@@ -294,7 +325,6 @@ app.get("/api/events/:id/interested_counts", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch interested count" });
   }
 });
-
 
 // ------------------- START SERVER -------------------
 app.listen(PORT, () => {
