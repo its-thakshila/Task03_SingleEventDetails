@@ -388,6 +388,48 @@ body {
     text-decoration: underline;
 }
 
+/* --- Interested button --- */
+.interested-button {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #000000;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+}
+
+.interested-button:hover {
+  background-color: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.interested-button:disabled {
+  cursor: not-allowed;
+  transform: none;
+}
+
+.interested-button.active {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.interested-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.interested-button.active .interested-icon {
+  filter: invert(100%);
+}
+
 @media (max-width: 768px) {
     .event-content {
         flex-direction: column;
