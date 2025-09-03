@@ -1,27 +1,34 @@
-const express = require("express");
-const supabase = require("./db"); // ✅ correct import
+// backend/index.js
+const express = require('express');
+const cors = require('cors');
+const supabase = require('./db');
 
 const app = express();
+app.use(cors()); // allow all origins temporarily // frontend dev server
+app.use(express.json());
+
 const PORT = 3000;
 
-app.get("/", async (req, res) => {
+// Root endpoint for testing
+app.get('/', (req, res) => {
+  res.send('Backend running ✅');
+});
+
+// Events API endpoint
+app.get('/api/events', async (req, res) => {
+  try {
     const { data, error } = await supabase
-        .from("feedback")  // 👈 query your real table
-        .select("*")
-        .limit(5);         // grab just a few rows for testing
+      .from('events')  // your table name in Supabase
+      .select('*')
+      .order('start_time', { ascending: true });
 
-    if (error) {
-        console.error("❌ Supabase error:", error.message);
-        return res.status(500).send("Connection failed!");
-    }
+    if (error) throw error;
 
-    res.send({
-        message: "✅ Connected to Supabase!",
-        sampleRows: data,
-    });
+    res.json(data);
+  } catch (err) {
+    console.error('Supabase fetch error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

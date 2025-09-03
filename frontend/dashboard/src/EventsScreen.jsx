@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+
 
 const EventsScreen = () => {
   const [events, setEvents] = useState([]);
@@ -14,14 +14,10 @@ const EventsScreen = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .order('start_time', { ascending: true });
-
-      console.log(data); // <-- Add this line
-
-      if (error) throw error;
+      const response = await fetch('http://localhost:3000/api/events'); // Update if backend runs elsewhere
+      if (!response.ok) throw new Error('Failed to fetch events');
+      const data = await response.json();
+      console.log(data); // Debug: see what you get from backend
       setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
