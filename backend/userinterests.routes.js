@@ -78,4 +78,16 @@ router.delete("/me", async (req, res) => {
   res.json({ user_id: req.userId, deleted: true });
 });
 
+// GET /interests/categories
+router.get("/categories", async (req, res) => {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("category_id, category_name")
+    .order("category_name", { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []); // must be an ARRAY
+});
+
+
 module.exports = router;

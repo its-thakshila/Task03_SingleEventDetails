@@ -15,7 +15,7 @@ app.get("/", async (_req, res) => {
   res.send({ message: "✅ Connected to Supabase!", sampleRows: data });
 });
 
-app.use("/interests", interestsRouter);
+app.use("/api/interests", interestsRouter);
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
