@@ -419,11 +419,13 @@ body {
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-clamp: 2;
     }
 
     .event-description.expanded {
         display: block;
         -webkit-line-clamp: unset;
+        line-clamp: unset;
         overflow: visible;
     }
 
