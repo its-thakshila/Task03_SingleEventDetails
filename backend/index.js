@@ -1,37 +1,61 @@
 const express = require("express");
-const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const { v4: uuidv4 } = require("uuid");
 const supabase = require("./db");
-const ratingsRouter = require("./ratings.routes"); // ✅ correct import
+const cors = require("cors");
+
+// routes
+const eventRoutes = require("./routes/events.routes");
+const ratingsRoutes = require("./routes/ratings.routes");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-app.use(cors({
-  origin: "http://localhost:5173",   // your Vite dev URL
-  credentials: true                  // allow cookies
-}));
+const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5178";
+app.use(
+    cors({
+        origin: allowedOrigin,
+        credentials: true,
+    })
+);
+
 app.use(express.json());
+app.use(cookieParser());
 
-// 👉 mount ratings endpoints
-app.use(ratingsRouter);
-
-app.get("/", async (req, res) => {
-    const { data, error } = await supabase
-        .from("feedback")  // 👈 query your real table
-        .select("*")
-        .limit(5);         // grab just a few rows for testing
-
-    if (error) {
-        console.error("❌ Supabase error:", error.message);
-        return res.status(500).send("Connection failed!");
+// Set a stable userId cookie if missing
+app.use((req, res, next) => {
+    if (!req.cookies.userId) {
+        res.cookie("userId", uuidv4(), {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false,
+            maxAge: 31536000000, // 1 year
+            path: "/",
+        });
     }
-
-    res.send({
-        message: "✅ Connected to Supabase!",
-        sampleRows: data,
-    });
+    next();
 });
 
+// ------------------- TEST ROUTE -------------------
+app.get("/", async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from("events")
+            .select("*")
+            .limit(8);
+        if (error) throw error;
+        res.send({ message: "✅ Connected to Supabase!", sampleRows: data });
+    } catch (err) {
+        console.error("❌ Supabase error:", err.message);
+        res.status(500).send("Connection failed!");
+    }
+});
+
+// ------------------- USE ROUTES -------------------
+app.use("/api", eventRoutes);
+app.use("/api", ratingsRoutes);
+
+// ------------------- START SERVER -------------------
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

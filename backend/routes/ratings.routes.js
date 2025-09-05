@@ -2,7 +2,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { randomUUID } = require("crypto");
-const supabase = require("./db"); // <- your existing db.js
+const supabase = require("../db"); // <- your existing db.js
 
 const router = express.Router();
 
@@ -225,3 +225,5 @@ router.get("/events/:eventId/ratings/all", async (req, res) => {
     res.status(500).json({ error: "server error" });
   }
 });
+
+module.exports= router;
