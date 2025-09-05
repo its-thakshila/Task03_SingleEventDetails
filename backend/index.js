@@ -7,11 +7,12 @@ const cors = require("cors");
 // routes
 const eventRoutes = require("./routes/events.routes");
 const ratingsRoutes = require("./routes/ratings.routes");
+const eventListRoutes = require("./routes/eventlist.routes");
 
 const app = express();
 const PORT = 3000;
 
-const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5178";
+const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5179";
 app.use(
     cors({
         origin: allowedOrigin,
@@ -54,6 +55,7 @@ app.get("/", async (req, res) => {
 // ------------------- USE ROUTES -------------------
 app.use("/api", eventRoutes);
 app.use("/api", ratingsRoutes);
+app.use("/api/events", eventListRoutes);
 
 // ------------------- START SERVER -------------------
 
