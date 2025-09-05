@@ -23,15 +23,15 @@ router.get("/events/:id", async (req, res) => {
         const { data, error } = await supabase
             .from("events")
             .select(`
-        event_id,
-        event_title,
-        description,
-        location,
-        start_time,
-        end_time,
-        interested_count,
-        event_photos (photo_url)
-      `)
+                event_id,
+                event_title,
+                description,
+                location,
+                start_time,
+                end_time,
+                interested_count,
+                event_photos (photo_url)
+            `)
             .eq("event_id", id)
             .limit(1);
 
@@ -122,6 +122,151 @@ router.get("/events/:id/status", async (req, res) => {
     } catch (err) {
         console.error(`❌ Failed to fetch status for event ${id}:`, err.message);
         res.status(500).json({ error: "Failed to fetch event status" });
+    }
+});
+
+// ------------------- INTERESTED EVENTS -------------------
+
+// Mark event as interested
+router.post("/interested", async (req, res) => {
+    const { event_id } = req.body;
+    const user_id = req.cookies.userId;
+    if (!event_id) return res.status(400).json({ error: "event_id is required" });
+
+    try {
+        const { data: existing, error: checkError } = await supabase
+            .from("interested_events")
+            .select("event_id")
+            .eq("user_id", user_id)
+            .eq("event_id", event_id)
+            .limit(1);
+        if (checkError) throw checkError;
+
+        if (existing.length > 0) {
+            const { data: eventData, error: fetchError } = await supabase
+                .from("events")
+                .select("interested_count")
+                .eq("event_id", event_id)
+                .single();
+            if (fetchError) throw fetchError;
+            return res.json({
+                message: "Already marked as interested",
+                interested_count: Number(eventData?.interested_count) || 0,
+            });
+        }
+
+        const { error: insertError } = await supabase
+            .from("interested_events")
+            .insert([{ user_id, event_id }]);
+        if (insertError) throw insertError;
+
+        const { data: eventData, error: fetchError } = await supabase
+            .from("events")
+            .select("interested_count")
+            .eq("event_id", event_id)
+            .single();
+        if (fetchError) throw fetchError;
+
+        const newCount = (Number(eventData?.interested_count) || 0) + 1;
+
+        const { error: updateError } = await supabase
+            .from("events")
+            .update({ interested_count: newCount })
+            .eq("event_id", event_id);
+        if (updateError) throw updateError;
+
+        res.status(201).json({
+            message: `Event ${event_id} marked as interested`,
+            interested_count: newCount,
+        });
+    } catch (err) {
+        console.error("❌ Failed to mark interested:", err.message);
+        res.status(500).json({ error: "Failed to mark event as interested" });
+    }
+});
+
+// Remove interested
+router.delete("/interested", async (req, res) => {
+    const { event_id } = req.body;
+    const user_id = req.cookies.userId;
+    if (!event_id) return res.status(400).json({ error: "event_id is required" });
+    if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
+
+    try {
+        const { error: deleteError } = await supabase
+            .from("interested_events")
+            .delete()
+            .eq("user_id", user_id)
+            .eq("event_id", event_id);
+        if (deleteError) throw deleteError;
+
+        const { data: eventData, error: fetchError } = await supabase
+            .from("events")
+            .select("interested_count")
+            .eq("event_id", event_id)
+            .single();
+        if (fetchError) throw fetchError;
+
+        const newCount = Math.max((Number(eventData?.interested_count) || 1) - 1, 0);
+
+        const { error: updateError } = await supabase
+            .from("events")
+            .update({ interested_count: newCount })
+            .eq("event_id", event_id);
+        if (updateError) throw updateError;
+
+        res.json({ message: "Event removed from interested list", interested_count: newCount });
+    } catch (err) {
+        console.error("❌ Failed to remove event:", err.message);
+        res.status(500).json({ error: "Failed to remove event" });
+    }
+});
+
+// Check interested status for a user
+router.get("/interested/status/:event_id", async (req, res) => {
+    const { event_id } = req.params;
+    const user_id = req.cookies.userId;
+    if (!event_id) return res.status(400).json({ error: "event_id is required" });
+    if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
+
+    try {
+        const { data, error } = await supabase
+            .from("interested_events")
+            .select("event_id")
+            .eq("user_id", user_id)
+            .eq("event_id", event_id)
+            .limit(1);
+        if (error) throw error;
+
+        const interested = Array.isArray(data) && data.length > 0;
+        res.json({ event_id: Number(event_id), interested });
+    } catch (err) {
+        console.error("❌ Failed to fetch interested status:", err.message);
+        res.status(500).json({ error: "Failed to fetch interested status" });
+    }
+});
+
+// Get all interested events of a user
+router.get("/interested/:user_id", async (req, res) => {
+    const { user_id } = req.params;
+    try {
+        const { data, error } = await supabase
+            .from("interested_events")
+            .select(`
+                event_id,
+                events (
+                    event_title,
+                    location,
+                    start_time,
+                    end_time
+                )
+            `)
+            .eq("user_id", user_id);
+        if (error) throw error;
+        res.json({ interestedEvents: data });
+    } catch (err) {
+        console.error("❌ Failed to fetch interested events:", err.message);
+        res.status(500).json({ error: "Failed to fetch interested events" });
     }
 });
 
