@@ -110,9 +110,6 @@ const EventsScreen = () => {
                 <h3 className="text-xl font-semibold mb-2">
                   {event.title || event.event_title || "Untitled Event"}
                 </h3>
-                <p className="text-gray-600 mb-4">
-                  {event.description || "No description"}
-                </p>
                 <p className="text-gray-700 text-sm mb-2">
                   {formatDate(event.start_time)}
                   {event.end_time && ` - ${formatDate(event.end_time)}`}
@@ -137,16 +134,24 @@ const EventsScreen = () => {
 
                   {/* Save Button (hidden in Saved view) */}
                   {!showSaved && (
-                    <button
-                      onClick={() => toggleSave(event)}
-                      className={`flex-1 py-2 rounded-lg transition-all duration-300 ${
-                        savedEvents.includes(eventId)
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-700 hover:bg-red-50"
-                      }`}
-                    >
-                      ❤️ {savedEvents.includes(eventId) ? "Saved" : "Save"}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => toggleSave(event)}
+                        className={`flex-1 py-2 rounded-lg transition-all duration-300 ${
+                          savedEvents.includes(eventId)
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700 hover:bg-red-50"
+                        }`}
+                      >
+                        ❤️ {savedEvents.includes(eventId) ? "Saved" : "Save"}
+                      </button>
+                      <button
+                        className="flex-1 py-2 rounded-lg transition-all duration-300 bg-gray-100 text-gray-700 hover:bg-green-50"
+                        onClick={() => alert('More details coming soon!')}
+                      >
+                        More
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
