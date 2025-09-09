@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import InterestsDialog from "../components/InterestsDialog.jsx";
 
 const EventsScreen = () => {
   const [events, setEvents] = useState([]);
@@ -15,8 +16,22 @@ const EventsScreen = () => {
 
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
   const [showSavePopup, setShowSavePopup] = useState(false);
+  const [isEditInterestsOpen, setIsEditInterestsOpen] = useState(false);
+
+
 
   const navigate = useNavigate();
+
+  // Open the Edit Interests modal only once per browser
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem("seenEditInterestsPrompt");
+      if (!seen) {
+        setIsEditInterestsOpen(true);
+        localStorage.setItem("seenEditInterestsPrompt", "1");
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     fetchEvents();
@@ -92,15 +107,23 @@ const EventsScreen = () => {
 
   return (
     <div className="events-screen p-6 bg-gray-50 min-h-screen">
-      {/* Header with My Events button */}
-      <div className="flex justify-between items-center mb-6">
+      {/* Header with grouped action buttons */}
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold text-gray-800">Events</h2>
-        <button
-          onClick={() => setIsMyEventsOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          My Events
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsEditInterestsOpen(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+          >
+            Edit Interests
+          </button>
+          <button
+            onClick={() => setIsMyEventsOpen(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            My Events
+          </button>
+        </div>
       </div>
 
       {events.length === 0 ? (
@@ -244,7 +267,16 @@ const EventsScreen = () => {
             )}
           </div>
         </div>
-      )}
+        )}
+        {/* Edit Interests Modal */}
+        {isEditInterestsOpen && (
+          <InterestsDialog
+            open={isEditInterestsOpen}
+            onClose={() => setIsEditInterestsOpen(false)}
+            onSaved={() => setIsEditInterestsOpen(false)} // you can also refresh lists here
+          />
+        )}
+
 
       {/* ✅ Save Success Popup */}
       <AnimatePresence>
