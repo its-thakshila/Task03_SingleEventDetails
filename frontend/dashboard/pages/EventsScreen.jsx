@@ -19,9 +19,15 @@ const EventsScreen = () => {
 
   const navigate = useNavigate();
 
-  // Open the Edit Interests modal on first load
+  // Open the Edit Interests modal only once per browser
   useEffect(() => {
-    setIsEditInterestsOpen(true);
+    try {
+      const seen = localStorage.getItem("seenEditInterestsPrompt");
+      if (!seen) {
+        setIsEditInterestsOpen(true);
+        localStorage.setItem("seenEditInterestsPrompt", "1");
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
