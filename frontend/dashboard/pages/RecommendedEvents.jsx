@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 const RecommendedEvents = () => {
   const [items, setItems] = useState([]);
@@ -109,7 +110,12 @@ const RecommendedEvents = () => {
                   ))}
                 </div>
               )}
-              <button className="mt-1 w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">View Details</button>
+              <Link
+                to={`/events/${ev.event_id}`}
+                className="mt-1 w-full inline-block text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Details
+              </Link>
             </div>
           ))}
         </div>
