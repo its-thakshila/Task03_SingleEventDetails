@@ -8,6 +8,7 @@ const cors = require("cors");
 const eventRoutes = require("./routes/events.routes");
 const ratingsRoutes = require("./routes/ratings.routes");
 const eventListRoutes = require("./routes/eventlist.routes");
+const interestsRouter = require("./routes/userinterests.routes");
 
 const app = express();
 const PORT = 3000;
@@ -56,6 +57,8 @@ app.get("/", async (req, res) => {
 app.use("/api", eventRoutes);
 app.use("/api", ratingsRoutes);
 app.use("/api/events", eventListRoutes);
+app.use("/api/interests", interestsRouter);
+
 
 // ------------------- START SERVER -------------------
 
