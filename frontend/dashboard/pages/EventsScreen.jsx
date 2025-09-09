@@ -8,6 +8,7 @@ const EventsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hoveredEvent, setHoveredEvent] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [myEvents, setMyEvents] = useState(() => {
     const saved = localStorage.getItem("myEvents");
@@ -23,6 +24,17 @@ const EventsScreen = () => {
     () => import.meta.env.VITE_API_URL || "http://localhost:3000",
     []
   );
+
+  const filteredEvents = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return events;
+    return events.filter((e) => {
+      const title = (e.event_title || "").toLowerCase();
+      const desc = (e.description || "").toLowerCase();
+      const loc = (e.location || "").toLowerCase();
+      return title.includes(q) || desc.includes(q) || loc.includes(q);
+    });
+  }, [events, searchQuery]);
 
   // Open the Edit Interests modal only once per browser
   useEffect(() => {
@@ -110,28 +122,37 @@ const EventsScreen = () => {
 
   return (
     <div className="events-screen p-6 bg-gray-50 min-h-screen">
-      {/* Header with grouped action buttons */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">Events</h2>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/recommended")}
-            className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
-          >
-            Recommended Events
-          </button>
-          <button
-            onClick={() => setIsEditInterestsOpen(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-          >
-            Edit Interests
-          </button>
-          <button
-            onClick={() => setIsMyEventsOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            My Events
-          </button>
+      {/* Header with title, search, and action buttons */}
+      <div className="mb-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <h2 className="text-3xl font-bold text-gray-800 md:mr-2 whitespace-nowrap">Events</h2>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search events by title, description, or location..."
+            className="w-full md:flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex items-center gap-3 md:ml-auto">
+            <button
+              onClick={() => navigate("/recommended")}
+              className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+            >
+              Recommended Events
+            </button>
+            <button
+              onClick={() => setIsEditInterestsOpen(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+            >
+              Edit Interests
+            </button>
+            <button
+              onClick={() => setIsMyEventsOpen(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              My Events
+            </button>
+          </div>
         </div>
       </div>
 
@@ -146,7 +167,7 @@ const EventsScreen = () => {
         </div>
       ) : (
         <div className="events-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {filteredEvents.map((event) => (
             <div
               key={event.event_id}
               className={`event-card bg-white border border-gray-200 rounded-xl p-5 shadow-sm transition-all duration-300 transform ${
@@ -174,7 +195,15 @@ const EventsScreen = () => {
                       ? "text-blue-700"
                       : "text-gray-900"
                   }`}
-                >
+                  onClick={() => navigate(`/events/${event.event_id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      navigate(`/events/${event.event_id}`);
+                    }
+                  }}
+                  >
                   {event.event_title}
                 </h3>
 
