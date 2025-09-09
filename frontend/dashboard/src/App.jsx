@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import EventsScreen from "../pages/EventsScreen.jsx";
 import SingleEventDetailPage from "../pages/SingleEventDetailPage.jsx";
 import FeedbackPage from "../pages/FeedbackPage.jsx";
+import RecommendedEvents from './pages/RecommendedEvents'
 
 export default function App() {
     return (
