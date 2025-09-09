@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import InterestsDialog from "../components/InterestsDialog.jsx";
@@ -18,9 +18,11 @@ const EventsScreen = () => {
   const [showSavePopup, setShowSavePopup] = useState(false);
   const [isEditInterestsOpen, setIsEditInterestsOpen] = useState(false);
 
-
-
   const navigate = useNavigate();
+  const API_BASE_URL = useMemo(
+    () => import.meta.env.VITE_API_URL || "http://localhost:3000",
+    []
+  );
 
   // Open the Edit Interests modal only once per browser
   useEffect(() => {
@@ -35,12 +37,13 @@ const EventsScreen = () => {
 
   useEffect(() => {
     fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/events");
+      const response = await fetch(`${API_BASE_URL}/api/events`);
       if (!response.ok) throw new Error("Failed to fetch events");
       const data = await response.json();
       setEvents(data || []);
@@ -111,6 +114,12 @@ const EventsScreen = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold text-gray-800">Events</h2>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/recommended")}
+            className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+          >
+            Recommended Events
+          </button>
           <button
             onClick={() => setIsEditInterestsOpen(true)}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
@@ -267,16 +276,16 @@ const EventsScreen = () => {
             )}
           </div>
         </div>
-        )}
-        {/* Edit Interests Modal */}
-        {isEditInterestsOpen && (
-          <InterestsDialog
-            open={isEditInterestsOpen}
-            onClose={() => setIsEditInterestsOpen(false)}
-            onSaved={() => setIsEditInterestsOpen(false)} // you can also refresh lists here
-          />
-        )}
+      )}
 
+      {/* Edit Interests Modal */}
+      {isEditInterestsOpen && (
+        <InterestsDialog
+          open={isEditInterestsOpen}
+          onClose={() => setIsEditInterestsOpen(false)}
+          onSaved={() => setIsEditInterestsOpen(false)} // you can also refresh lists here
+        />
+      )}
 
       {/* ✅ Save Success Popup */}
       <AnimatePresence>
