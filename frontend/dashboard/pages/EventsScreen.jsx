@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import InterestsDialog from "../components/InterestsDialog.jsx";
 
 const EventsScreen = () => {
@@ -14,7 +15,9 @@ const EventsScreen = () => {
   });
 
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
+  const [showSavePopup, setShowSavePopup] = useState(false);
   const [isEditInterestsOpen, setIsEditInterestsOpen] = useState(false);
+
 
 
   const navigate = useNavigate();
@@ -55,6 +58,10 @@ const EventsScreen = () => {
       updated.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
       setMyEvents(updated);
       localStorage.setItem("myEvents", JSON.stringify(updated));
+
+      // 🎉 Trigger success popup
+      setShowSavePopup(true);
+      setTimeout(() => setShowSavePopup(false), 1500);
     }
   };
 
@@ -172,8 +179,7 @@ const EventsScreen = () => {
                   <div className="flex items-start">
                     <span className="text-gray-700">
                       {formatDate(event.start_time)}
-                      {event.end_time &&
-                        ` - ${formatDate(event.end_time)}`}
+                      {event.end_time && ` - ${formatDate(event.end_time)}`}
                     </span>
                   </div>
 
@@ -209,48 +215,57 @@ const EventsScreen = () => {
       )}
 
       {/* My Events Modal */}
-        {isMyEventsOpen && (
+      {isMyEventsOpen && (
         <div className="fixed inset-0 flex justify-center items-start pt-20 z-50 backdrop-blur-sm bg-white/20">
-            <div className="bg-gradient-to-b from-white to-blue-200 rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">My Events</h2>
+          <div className="bg-gradient-to-b from-white to-blue-200 rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">
+              My Events
+            </h2>
             <button
-                className="absolute top-2 right-2 text-gray-800 hover:text-black font-bold text-xl"
-                onClick={() => setIsMyEventsOpen(false)}
+              className="absolute top-2 right-2 text-gray-800 hover:text-black font-bold text-xl"
+              onClick={() => setIsMyEventsOpen(false)}
             >
-                ✕
+              ✕
             </button>
             {myEvents.length === 0 ? (
-                <p className="text-center text-gray-600 mt-6">No saved events yet.</p>
+              <p className="text-center text-gray-600 mt-6">
+                No saved events yet.
+              </p>
             ) : (
-                <ul className="space-y-4 max-h-80 overflow-y-auto">
+              <ul className="space-y-4 max-h-80 overflow-y-auto">
                 {myEvents.map((event) => (
-                    <li
+                  <li
                     key={event.event_id}
                     className="flex justify-between items-center p-3 bg-white/70 rounded-lg shadow-sm hover:shadow-md transition-all"
-                    >
+                  >
                     <div>
-                        <h3 className="font-semibold text-gray-800">{event.event_title}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                      <h3 className="font-semibold text-gray-800">
+                        {event.event_title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
                         {new Date(event.start_time).toLocaleString()}
-                        </p>
+                      </p>
                     </div>
                     <button
-                        className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-colors"
-                        onClick={() => {
+                      className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-colors"
+                      onClick={() => {
                         const updated = myEvents.filter(
-                            (e) => e.event_id !== event.event_id
+                          (e) => e.event_id !== event.event_id
                         );
                         setMyEvents(updated);
-                        localStorage.setItem("myEvents", JSON.stringify(updated));
-                        }}
+                        localStorage.setItem(
+                          "myEvents",
+                          JSON.stringify(updated)
+                        );
+                      }}
                     >
-                        Remove
+                      Remove
                     </button>
-                    </li>
+                  </li>
                 ))}
-                </ul>
+              </ul>
             )}
-            </div>
+          </div>
         </div>
         )}
         {/* Edit Interests Modal */}
@@ -263,7 +278,22 @@ const EventsScreen = () => {
         )}
 
 
-
+      {/* ✅ Save Success Popup */}
+      <AnimatePresence>
+        {showSavePopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 flex justify-center items-center z-[9999]"
+          >
+            <div className="bg-green-500 text-white p-6 rounded-full shadow-2xl flex items-center justify-center">
+              <span className="text-4xl font-bold">✔</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
