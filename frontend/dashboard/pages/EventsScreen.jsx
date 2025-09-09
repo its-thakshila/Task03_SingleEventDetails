@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 const EventsScreen = () => {
@@ -15,6 +15,7 @@ const EventsScreen = () => {
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
 
   const navigate = useNavigate();
+  const API_BASE_URL = useMemo(() => import.meta.env.VITE_API_URL || 'http://localhost:3000', []);
 
   useEffect(() => {
     fetchEvents();
@@ -23,7 +24,7 @@ const EventsScreen = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/events");
+      const response = await fetch(`${API_BASE_URL}/api/events`);
       if (!response.ok) throw new Error("Failed to fetch events");
       const data = await response.json();
       setEvents(data || []);
@@ -89,12 +90,20 @@ const EventsScreen = () => {
       {/* Header with My Events button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-gray-800">Events</h2>
-        <button
-          onClick={() => setIsMyEventsOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          My Events
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/recommended')}
+            className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+          >
+            Recommended Events
+          </button>
+          <button
+            onClick={() => setIsMyEventsOpen(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            My Events
+          </button>
+        </div>
       </div>
 
       {events.length === 0 ? (

@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 
 const RecommendedEvents = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const API_BASE_URL = useMemo(() => import.meta.env.VITE_API_URL || 'http://localhost:3000', []);
 
   useEffect(() => {
     fetchRecommended();
@@ -13,7 +15,7 @@ const RecommendedEvents = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('http://localhost:3000/api/events/recommended', {
+      const res = await fetch(`${API_BASE_URL}/api/events/recommended`, {
         credentials: 'include',
       });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);

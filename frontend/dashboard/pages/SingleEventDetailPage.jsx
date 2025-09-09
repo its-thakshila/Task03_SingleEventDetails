@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import './SingleEventDetailPage.css';
+import './SingleEventdetailPage.css';
 
 import ClockIcon from '../icons/clock.svg';
 import LocationIcon from '../icons/location.svg';

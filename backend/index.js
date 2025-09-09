@@ -54,10 +54,11 @@ app.get("/", async (req, res) => {
 });
 
 // ------------------- USE ROUTES -------------------
-app.use("/api", eventRoutes);
+// Mount more specific /api/events/* routes before /api/events/:id
+app.use("/api", interestsRouter); // includes /events/recommended, /events/discover, etc.
+app.use("/api/events", eventListRoutes); // /api/events list
 app.use("/api", ratingsRoutes);
-app.use("/api/events", eventListRoutes);
-app.use("/api", interestsRouter);
+app.use("/api", eventRoutes); // includes /events/:id and related
 
 // ------------------- START SERVER -------------------
 

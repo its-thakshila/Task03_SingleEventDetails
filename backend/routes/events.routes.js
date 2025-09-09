@@ -19,6 +19,10 @@ const fieldMap = {
 // Get event details
 router.get("/events/:id", async (req, res) => {
     const { id } = req.params;
+    const idNum = Number(id);
+    if (!Number.isFinite(idNum)) {
+        return res.status(400).json({ error: "Invalid event id" });
+    }
     try {
         const { data, error } = await supabase
             .from("events")
@@ -32,7 +36,7 @@ router.get("/events/:id", async (req, res) => {
                 interested_count,
                 event_photos (photo_url)
             `)
-            .eq("event_id", id)
+            .eq("event_id", idNum)
             .limit(1);
 
         if (error) throw error;
@@ -50,12 +54,16 @@ router.get("/events/:id", async (req, res) => {
 Object.keys(fieldMap).forEach((field) => {
     router.get(`/events/:id/${field}`, async (req, res) => {
         const { id } = req.params;
+        const idNum = Number(id);
+        if (!Number.isFinite(idNum)) {
+            return res.status(400).json({ error: "Invalid event id" });
+        }
         const selectField = fieldMap[field];
         try {
             const { data, error } = await supabase
                 .from("events")
                 .select(selectField)
-                .eq("event_id", id)
+                .eq("event_id", idNum)
                 .limit(1);
 
             if (error) throw error;
@@ -81,11 +89,15 @@ Object.keys(fieldMap).forEach((field) => {
 // Event photos
 router.get("/events/:id/photos", async (req, res) => {
     const { id } = req.params;
+    const idNum = Number(id);
+    if (!Number.isFinite(idNum)) {
+        return res.status(400).json({ error: "Invalid event id" });
+    }
     try {
         const { data, error } = await supabase
             .from("event_photos")
             .select("photo_url")
-            .eq("event_id", id);
+            .eq("event_id", idNum);
 
         if (error) throw error;
         res.json({ photos: data.map((p) => p.photo_url) });
@@ -98,11 +110,15 @@ router.get("/events/:id/photos", async (req, res) => {
 // Event status (Upcoming, Ongoing, Ended)
 router.get("/events/:id/status", async (req, res) => {
     const { id } = req.params;
+    const idNum = Number(id);
+    if (!Number.isFinite(idNum)) {
+        return res.status(400).json({ error: "Invalid event id" });
+    }
     try {
         const { data, error } = await supabase
             .from("events")
             .select("start_time, end_time")
-            .eq("event_id", id)
+            .eq("event_id", idNum)
             .limit(1);
 
         if (error) throw error;
@@ -118,7 +134,7 @@ router.get("/events/:id/status", async (req, res) => {
         if (now >= start && now <= end) status = "Ongoing";
         else if (now > end) status = "Ended";
 
-        res.json({ event_id: id, status });
+        res.json({ event_id: idNum, status });
     } catch (err) {
         console.error(`❌ Failed to fetch status for event ${id}:`, err.message);
         res.status(500).json({ error: "Failed to fetch event status" });
@@ -273,16 +289,20 @@ router.get("/interested/:user_id", async (req, res) => {
 // Interested count
 router.get("/events/:id/interested_counts", async (req, res) => {
     const { id } = req.params;
+    const idNum = Number(id);
+    if (!Number.isFinite(idNum)) {
+        return res.status(400).json({ error: "Invalid event id" });
+    }
     try {
         const { data, error } = await supabase
             .from("events")
             .select("interested_count")
-            .eq("event_id", id)
+            .eq("event_id", idNum)
             .single();
         if (error) throw error;
         if (!data) return res.status(404).json({ error: "Event not found" });
         res.json({
-            event_id: id,
+            event_id: idNum,
             interested_count: Number(data.interested_count) || 0,
         });
     } catch (err) {

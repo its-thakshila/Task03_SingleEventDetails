@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Star, Send, Trash2 } from "lucide-react";
-import "../src/App.css";
 
 export default function FeedbackCard({ eventId }) {
   const API = useMemo(() => import.meta.env.VITE_API_URL || "", []);
