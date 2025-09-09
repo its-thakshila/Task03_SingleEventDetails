@@ -12,7 +12,7 @@ const eventListRoutes = require("./routes/eventlist.routes");
 const app = express();
 const PORT = 3000;
 
-const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5180";
+const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 app.use(
     cors({
         origin: allowedOrigin,
