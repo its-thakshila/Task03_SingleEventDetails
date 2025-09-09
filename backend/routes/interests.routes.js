@@ -1,7 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { randomUUID } = require("crypto");
-const supabase = require("./db");
+const supabase = require("../db");
 
 const router = express.Router();
 const COOKIE_NAME = "userId";

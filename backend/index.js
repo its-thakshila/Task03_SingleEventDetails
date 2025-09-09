@@ -1,7 +1,7 @@
 const express = require("express");
 const supabase = require("./db");
 const cors = require("cors");
-const interestsRouter = require("./interests.routes");
+const interestsRouter = require("./routes/interests.routes");
 
 const app = express();
 const PORT = 3000;
