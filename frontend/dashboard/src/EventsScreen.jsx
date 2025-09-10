@@ -173,9 +173,6 @@ const EventsScreen = () => {
             </h2>
             <div className="flex flex-col md:flex-row gap-3 md:items-center">
               <div className="w-full">
-                <h2 className="text-3xl font-bold text-gray-800 block md:hidden mb-2 text-center">
-                  {showSaved ? "Saved Events" : "Events"}
-                </h2>
                 <div className="block md:hidden mb-2">
                   <input
                     type="text"
