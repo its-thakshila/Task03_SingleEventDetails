@@ -28,7 +28,6 @@ const EventsScreen = () => {
         }
       } catch (error) {
         console.error('Error loading events from cookies:', error);
-        // If there's an error parsing cookies, clear them
         Cookies.remove('savedEvents');
         Cookies.remove('interestedEvents');
       }
@@ -40,7 +39,7 @@ const EventsScreen = () => {
   // Save to cookies whenever savedEvents changes
   useEffect(() => {
     if (savedEvents.length > 0) {
-      Cookies.set('savedEvents', JSON.stringify(savedEvents), { expires: 30 }); // expires in 30 days
+      Cookies.set('savedEvents', JSON.stringify(savedEvents), { expires: 30 });
     } else {
       Cookies.remove('savedEvents');
     }
@@ -49,7 +48,7 @@ const EventsScreen = () => {
   // Save to cookies whenever interestedEvents changes
   useEffect(() => {
     if (interestedEvents.length > 0) {
-      Cookies.set('interestedEvents', JSON.stringify(interestedEvents), { expires: 30 }); // expires in 30 days
+      Cookies.set('interestedEvents', JSON.stringify(interestedEvents), { expires: 30 });
     } else {
       Cookies.remove('interestedEvents');
     }
@@ -84,8 +83,7 @@ const EventsScreen = () => {
       const newSavedEvents = prev.includes(eventId)
         ? prev.filter((e) => e !== eventId)
         : [...prev, eventId];
-      
-      console.log('Updated saved events:', newSavedEvents); // Debug log
+      console.log('Updated saved events:', newSavedEvents);
       return newSavedEvents;
     });
   };
@@ -96,8 +94,7 @@ const EventsScreen = () => {
       const newInterestedEvents = prev.includes(eventId)
         ? prev.filter((e) => e !== eventId)
         : [...prev, eventId];
-      
-      console.log('Updated interested events:', newInterestedEvents); // Debug log
+      console.log('Updated interested events:', newInterestedEvents);
       return newInterestedEvents;
     });
   };
@@ -111,6 +108,21 @@ const EventsScreen = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // 🟢 Helper function for status
+  const getEventStatus = (start, end) => {
+    const now = new Date();
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    if (now >= startDate && now <= endDate) {
+      return { label: "On Going", color: "bg-green-100 text-green-700" };
+    } else if (now < startDate) {
+      return { label: "Up Coming", color: "bg-yellow-100 text-yellow-700" };
+    } else {
+      return { label: "Ended", color: "bg-red-100 text-red-700" };
+    }
   };
 
   if (loading) return <p className="p-6">Loading events...</p>;
@@ -164,6 +176,8 @@ const EventsScreen = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedEvents.map((event) => {
               const eventId = getEventId(event);
+              const status = getEventStatus(event.start_time, event.end_time);
+
               return (
                 <div
                   key={eventId}
@@ -176,8 +190,7 @@ const EventsScreen = () => {
                     {formatDate(event.start_time)}
                     {event.end_time && ` - ${formatDate(event.end_time)}`}
                   </p>
-                  <p className="text-gray-700 text-sm mb-4 flex items-center">
-                    {/* Location icon */}
+                  <p className="text-gray-700 text-sm mb-2 flex items-center">
                     <svg className="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -185,9 +198,13 @@ const EventsScreen = () => {
                     {event.location || "No location"}
                   </p>
 
+                  {/* ✅ Status bubble */}
+                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${status.color}`}>
+                    {status.label}
+                  </span>
+
                   {/* Buttons */}
-                  <div className="flex space-x-3">
-                    {/* Interested Button */}
+                  <div className="flex space-x-3 mt-4">
                     <button
                       onClick={() => toggleInterested(event)}
                       className={`flex-1 py-2 rounded-lg transition-all duration-300 ${
@@ -199,7 +216,6 @@ const EventsScreen = () => {
                       ⭐ Interested
                     </button>
 
-                    {/* Save Button (hidden in Saved view) */}
                     {!showSaved && (
                       <>
                         <button
@@ -220,8 +236,7 @@ const EventsScreen = () => {
                         </button>
                       </>
                     )}
-                    
-                    {/* Unsave Button (only shown in Saved view) */}
+
                     {showSaved && (
                       <button
                         onClick={() => toggleSave(event)}
@@ -236,12 +251,6 @@ const EventsScreen = () => {
             })}
           </div>
         )}
-        
-        {/* Debug info - remove this in production */}
-        {/* <div className="mt-6 text-sm text-gray-500">
-          <p>Saved Events: {JSON.stringify(savedEvents)}</p>
-          <p>Interested Events: {JSON.stringify(interestedEvents)}</p>
-        </div> */}
       </div>
     </div>
   );
