@@ -11,7 +11,7 @@ const EventsScreen = () => {
   const [showSaved, setShowSaved] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
-    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // Load saved events from cookies on component mount
   useEffect(() => {
@@ -134,17 +134,26 @@ const EventsScreen = () => {
   if (loading) return <p className="p-6">Loading events...</p>;
   if (error) return <p className="p-6">Error: {error}</p>;
 
-  // ...existing code...
-
   const displayedEvents = showSaved
     ? events.filter((event) => savedEvents.includes(getEventId(event)))
     : events;
 
-  // Filter by search term and selected category
-  const filteredEvents = displayedEvents.filter(event => {
+  // ✅ Filter by search term & category
+  let filteredEvents = displayedEvents.filter(event => {
     const matchesSearch = searchTerm === "" || (event.title || event.event_title || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(event.category_name);
     return matchesSearch && matchesCategory;
+  });
+
+  // ✅ Sort by status + then by start_time
+  const statusOrder = { "On Going": 0, "Up Coming": 1, "Ended": 2 };
+  filteredEvents = filteredEvents.sort((a, b) => {
+    const statusA = getEventStatus(a.start_time, a.end_time).label;
+    const statusB = getEventStatus(b.start_time, b.end_time).label;
+    if (statusA === statusB) {
+      return new Date(a.start_time) - new Date(b.start_time); // sort by date if same status
+    }
+    return statusOrder[statusA] - statusOrder[statusB];
   });
 
   return (
@@ -157,13 +166,10 @@ const EventsScreen = () => {
               {showSaved ? "Saved Events" : "Events"}
             </h2>
             <div className="flex flex-col md:flex-row gap-3 md:items-center">
-              {/* Mobile: title, search bar, then 3 buttons. Desktop: current layout. */}
               <div className="w-full">
-                {/* Mobile title */}
                 <h2 className="text-3xl font-bold text-gray-800 block md:hidden mb-2 text-center">
                   {showSaved ? "Saved Events" : "Events"}
                 </h2>
-                {/* Mobile search bar */}
                 <div className="block md:hidden mb-2">
                   <input
                     type="text"
@@ -173,7 +179,6 @@ const EventsScreen = () => {
                     className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 w-full"
                   />
                 </div>
-                {/* Mobile: 3 buttons row */}
                 <div className="flex flex-row gap-2 w-full md:hidden mb-2">
                   <div className="relative flex-1 min-w-0">
                     <button
@@ -236,7 +241,6 @@ const EventsScreen = () => {
                     Saved ({savedEvents.length})
                   </button>
                 </div>
-                {/* Desktop: current layout */}
                 <div className="hidden md:flex flex-row w-full md:w-auto items-center gap-2 md:gap-3">
                   <input
                     type="text"
