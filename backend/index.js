@@ -45,12 +45,12 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-// Categories API endpoint
+// Categories API endpoint/api/categories
 app.get('/api/categories', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .select('id, name');
+      .select('category_id, category_name');
 
     if (error) throw error;
 
