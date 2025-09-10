@@ -10,6 +10,8 @@ const EventsScreen = () => {
   const [interestedEvents, setInterestedEvents] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // Load saved events from cookies on component mount
   useEffect(() => {
@@ -36,6 +38,9 @@ const EventsScreen = () => {
 
     loadSavedEventsFromCookies();
   }, []);
+
+  // Get unique category names from events
+  const categories = Array.from(new Set(events.map(e => e.category_name).filter(Boolean)));
 
   // Save to cookies whenever savedEvents changes
   useEffect(() => {
@@ -129,38 +134,18 @@ const EventsScreen = () => {
   if (loading) return <p className="p-6">Loading events...</p>;
   if (error) return <p className="p-6">Error: {error}</p>;
 
-  const filteredEvents = (showSaved
-    ? events.filter((event) => savedEvents.includes(getEventId(event)))
-    : events
-  ).filter(event => {
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return true;
-    return (
-      (event.title && event.title.toLowerCase().includes(term)) ||
-      (event.event_title && event.event_title.toLowerCase().includes(term)) ||
-      (event.location && event.location.toLowerCase().includes(term))
-    );
-  }).sort((a, b) => {
-    const now = new Date();
-    const getStatus = (start, end) => {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-
-      if (now >= startDate && now <= endDate) return 1; // Ongoing
-      if (now < startDate) return 2; // Upcoming
-      return 3; // Ended
-    };
-
-    const statusA = getStatus(a.start_time, a.end_time);
-    const statusB = getStatus(b.start_time, b.end_time);
-
-    if (statusA !== statusB) return statusA - statusB; // Sort by status
-    return new Date(a.start_time) - new Date(b.start_time); // Sort by start time
-  });
+  // ...existing code...
 
   const displayedEvents = showSaved
     ? events.filter((event) => savedEvents.includes(getEventId(event)))
     : events;
+
+  // Filter by search term and selected category
+  const filteredEvents = displayedEvents.filter(event => {
+    const matchesSearch = searchTerm === "" || (event.title || event.event_title || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(event.category_name);
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -180,22 +165,72 @@ const EventsScreen = () => {
                 className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
                 style={{ minWidth: 200 }}
               />
-              <button
-                onClick={() => setShowSaved(false)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  !showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
-              >
-                Events
-              </button>
-              <button
-                onClick={() => setShowSaved(true)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
-              >
-                Saved Events ({savedEvents.length})
-              </button>
+              <div className="flex flex-row gap-3 w-full md:w-auto items-center">
+                <div className="flex flex-row gap-2 w-full md:w-auto items-center justify-between">
+                  <button
+                    onClick={() => setShowSaved(false)}
+                    className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                      !showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
+                    style={{maxWidth: '33%'}}
+                  >
+                    Events
+                  </button>
+                  <button
+                    onClick={() => setShowSaved(true)}
+                    className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                      showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
+                    style={{maxWidth: '33%'}}
+                  >
+                    Saved ({savedEvents.length})
+                  </button>
+                  {/* Category filter button */}
+                  <div className="relative flex-1 min-w-0" style={{maxWidth: '33%'}}>
+                    <button
+                      type="button"
+                      className="w-full px-2 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 border border-gray-300 hover:bg-blue-50 transition-all duration-200 text-sm"
+                      onClick={() => setShowCategoryDropdown((prev) => !prev)}
+                      style={{textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}
+                    >
+                      {selectedCategories.length > 0 ? `${selectedCategories.join(", ")}` : "Categories"}
+                      <span className="ml-2">▼</span>
+                    </button>
+                    {showCategoryDropdown && (
+                      <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-2">
+                        {categories.map((cat) => (
+                          <label
+                            key={cat}
+                            className="flex items-center px-2 py-2 cursor-pointer rounded-lg hover:bg-blue-50 transition-all duration-150"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(cat)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedCategories(prev => [...prev, cat]);
+                                } else {
+                                  setSelectedCategories(prev => prev.filter(c => c !== cat));
+                                }
+                              }}
+                              className="mr-2 accent-blue-600"
+                            />
+                            <span className={selectedCategories.includes(cat) ? "font-bold text-blue-700" : "text-gray-800"}>{cat}</span>
+                          </label>
+                        ))}
+                        <div className="flex justify-end mt-2">
+                          <button
+                            className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-all duration-150"
+                            onClick={() => setShowCategoryDropdown(false)}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

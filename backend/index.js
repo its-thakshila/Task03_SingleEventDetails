@@ -15,12 +15,42 @@ app.get('/', (req, res) => {
 });
 
 // Events API endpoint
+
+// Events API endpoint
 app.get('/api/events', async (req, res) => {
   try {
+    // Join events, event_categories, and categories to get category name for each event
     const { data, error } = await supabase
-    .from('events')  // your table name in Supabase
-    .select('event_id, event_title, start_time, end_time, location') // exclude 'description'
-    .order('start_time', { ascending: true });
+      .from('events')
+      .select(`event_id, event_title, start_time, end_time, location, event_categories(category_id, category:categories(category_id, category_name))`)
+      .order('start_time', { ascending: true });
+
+    if (error) throw error;
+
+    // Flatten category_id and category name for each event
+    const eventsWithCategory = (data || []).map(event => {
+      let category_id = null;
+      let category_name = null;
+      if (event.event_categories && event.event_categories.length > 0) {
+        category_id = event.event_categories[0].category.category_id;
+        category_name = event.event_categories[0].category.category_name;
+      }
+      return { ...event, category_id, category_name };
+    });
+
+    res.json(eventsWithCategory);
+  } catch (err) {
+    console.error('Supabase fetch error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Categories API endpoint
+app.get('/api/categories', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name');
 
     if (error) throw error;
 
