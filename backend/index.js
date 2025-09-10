@@ -19,7 +19,7 @@ app.get('/api/events', async (req, res) => {
   try {
     const { data, error } = await supabase
     .from('events')  // your table name in Supabase
-    .select('event_id, event_title, start_time, end_time') // exclude 'description'
+    .select('event_id, event_title, start_time, end_time, location') // exclude 'description'
     .order('start_time', { ascending: true });
 
     if (error) throw error;
