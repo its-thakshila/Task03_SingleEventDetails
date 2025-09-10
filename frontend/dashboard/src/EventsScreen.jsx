@@ -39,8 +39,12 @@ const EventsScreen = () => {
     loadSavedEventsFromCookies();
   }, []);
 
-  // Get unique category names from events
-  const categories = Array.from(new Set(events.map(e => e.category_name).filter(Boolean)));
+  // Get unique category names from all event categories
+  const categories = Array.from(
+    new Set(
+      events.flatMap(e => (e.categories || []).map(c => c.category_name)).filter(Boolean)
+    )
+  );
 
   // Save to cookies whenever savedEvents changes
   useEffect(() => {
@@ -141,7 +145,9 @@ const EventsScreen = () => {
   // ✅ Filter by search term & category
   let filteredEvents = displayedEvents.filter(event => {
     const matchesSearch = searchTerm === "" || (event.title || event.event_title || "").toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(event.category_name);
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      (event.categories || []).some(c => selectedCategories.includes(c.category_name));
     return matchesSearch && matchesCategory;
   });
 

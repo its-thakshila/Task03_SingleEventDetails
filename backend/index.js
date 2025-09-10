@@ -27,18 +27,21 @@ app.get('/api/events', async (req, res) => {
 
     if (error) throw error;
 
-    // Flatten category_id and category name for each event
-    const eventsWithCategory = (data || []).map(event => {
-      let category_id = null;
-      let category_name = null;
+    // Map all categories for each event into an array
+    const eventsWithCategories = (data || []).map(event => {
+      let categories = [];
       if (event.event_categories && event.event_categories.length > 0) {
-        category_id = event.event_categories[0].category.category_id;
-        category_name = event.event_categories[0].category.category_name;
+        categories = event.event_categories
+          .filter(ec => ec && ec.category)
+          .map(ec => ({
+            category_id: ec.category.category_id,
+            category_name: ec.category.category_name,
+          }));
       }
-      return { ...event, category_id, category_name };
+      return { ...event, categories };
     });
 
-    res.json(eventsWithCategory);
+    res.json(eventsWithCategories);
   } catch (err) {
     console.error('Supabase fetch error:', err.message);
     res.status(500).json({ error: err.message });
