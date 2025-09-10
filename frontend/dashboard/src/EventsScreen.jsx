@@ -140,6 +140,22 @@ const EventsScreen = () => {
       (event.event_title && event.event_title.toLowerCase().includes(term)) ||
       (event.location && event.location.toLowerCase().includes(term))
     );
+  }).sort((a, b) => {
+    const now = new Date();
+    const getStatus = (start, end) => {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      if (now >= startDate && now <= endDate) return 1; // Ongoing
+      if (now < startDate) return 2; // Upcoming
+      return 3; // Ended
+    };
+
+    const statusA = getStatus(a.start_time, a.end_time);
+    const statusB = getStatus(b.start_time, b.end_time);
+
+    if (statusA !== statusB) return statusA - statusB; // Sort by status
+    return new Date(a.start_time) - new Date(b.start_time); // Sort by start time
   });
 
   const displayedEvents = showSaved
