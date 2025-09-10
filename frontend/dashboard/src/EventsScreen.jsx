@@ -9,6 +9,7 @@ const EventsScreen = () => {
   const [savedEvents, setSavedEvents] = useState([]);
   const [interestedEvents, setInterestedEvents] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Load saved events from cookies on component mount
   useEffect(() => {
@@ -128,6 +129,19 @@ const EventsScreen = () => {
   if (loading) return <p className="p-6">Loading events...</p>;
   if (error) return <p className="p-6">Error: {error}</p>;
 
+  const filteredEvents = (showSaved
+    ? events.filter((event) => savedEvents.includes(getEventId(event)))
+    : events
+  ).filter(event => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      (event.title && event.title.toLowerCase().includes(term)) ||
+      (event.event_title && event.event_title.toLowerCase().includes(term)) ||
+      (event.location && event.location.toLowerCase().includes(term))
+    );
+  });
+
   const displayedEvents = showSaved
     ? events.filter((event) => savedEvents.includes(getEventId(event)))
     : events;
@@ -137,12 +151,19 @@ const EventsScreen = () => {
       {/* Sticky Header with toggle buttons */}
       <div className="sticky top-0 z-10 bg-white shadow-md border-b border-gray-200">
         <div className="p-6 pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h2 className="text-3xl font-bold text-gray-800">
               {showSaved ? "Saved Events" : "Events"}
             </h2>
-
-            <div className="flex space-x-3">
+            <div className="flex flex-col md:flex-row gap-3 md:items-center">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search events..."
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
+                style={{ minWidth: 200 }}
+              />
               <button
                 onClick={() => setShowSaved(false)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
@@ -169,12 +190,16 @@ const EventsScreen = () => {
         {displayedEvents.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">
-              {showSaved ? "No saved events yet" : "No events scheduled"}
+              {searchTerm
+                ? `No events found for "${searchTerm}"`
+                : showSaved
+                  ? "No saved events yet"
+                  : "No events scheduled"}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedEvents.map((event) => {
+            {filteredEvents.map((event) => {
               const eventId = getEventId(event);
               const status = getEventStatus(event.start_time, event.end_time);
 
