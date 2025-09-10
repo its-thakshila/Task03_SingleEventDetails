@@ -157,41 +157,31 @@ const EventsScreen = () => {
               {showSaved ? "Saved Events" : "Events"}
             </h2>
             <div className="flex flex-col md:flex-row gap-3 md:items-center">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Search events..."
-                className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
-                style={{ minWidth: 200 }}
-              />
-              <div className="flex flex-row gap-3 w-full md:w-auto items-center">
-                <div className="flex flex-row gap-2 w-full md:w-auto items-center justify-between">
-                  <button
-                    onClick={() => setShowSaved(false)}
-                    className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
-                      !showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                    }`}
-                    style={{maxWidth: '33%'}}
-                  >
-                    Events
-                  </button>
-                  <button
-                    onClick={() => setShowSaved(true)}
-                    className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
-                      showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                    }`}
-                    style={{maxWidth: '33%'}}
-                  >
-                    Saved ({savedEvents.length})
-                  </button>
-                  {/* Category filter button */}
-                  <div className="relative flex-1 min-w-0" style={{maxWidth: '33%'}}>
+              {/* Mobile: title, search bar, then 3 buttons. Desktop: current layout. */}
+              <div className="w-full">
+                {/* Mobile title */}
+                <h2 className="text-3xl font-bold text-gray-800 block md:hidden mb-2 text-center">
+                  {showSaved ? "Saved Events" : "Events"}
+                </h2>
+                {/* Mobile search bar */}
+                <div className="block md:hidden mb-2">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Search events..."
+                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800 w-full"
+                  />
+                </div>
+                {/* Mobile: 3 buttons row */}
+                <div className="flex flex-row gap-2 w-full md:hidden mb-2">
+                  <div className="relative flex-1 min-w-0">
                     <button
                       type="button"
                       className="w-full px-2 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 border border-gray-300 hover:bg-blue-50 transition-all duration-200 text-sm"
                       onClick={() => setShowCategoryDropdown((prev) => !prev)}
-                      style={{textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}
+                      style={{textOverflow: 'ellipsis', overflowX: 'auto', whiteSpace: 'nowrap'}}
+                      title={selectedCategories.length > 0 ? selectedCategories.join(", ") : "Categories"}
                     >
                       {selectedCategories.length > 0 ? `${selectedCategories.join(", ")}` : "Categories"}
                       <span className="ml-2">▼</span>
@@ -228,6 +218,97 @@ const EventsScreen = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+                  <button
+                    onClick={() => setShowSaved(false)}
+                    className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                      !showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
+                  >
+                    Events
+                  </button>
+                  <button
+                    onClick={() => setShowSaved(true)}
+                    className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                      showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
+                  >
+                    Saved ({savedEvents.length})
+                  </button>
+                </div>
+                {/* Desktop: current layout */}
+                <div className="hidden md:flex flex-row w-full md:w-auto items-center gap-2 md:gap-3">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Search events..."
+                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-800"
+                    style={{ minWidth: 200 }}
+                  />
+                  <div className="relative md:mx-2" style={{flexBasis: '220px', minWidth: '120px'}}>
+                    <button
+                      type="button"
+                      className="w-full px-2 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 border border-gray-300 hover:bg-blue-50 transition-all duration-200 text-sm"
+                      onClick={() => setShowCategoryDropdown((prev) => !prev)}
+                      style={{textOverflow: 'ellipsis', overflowX: 'auto', whiteSpace: 'nowrap'}}
+                      title={selectedCategories.length > 0 ? selectedCategories.join(", ") : "Categories"}
+                    >
+                      {selectedCategories.length > 0 ? `${selectedCategories.join(", ")}` : "Categories"}
+                      <span className="ml-2">▼</span>
+                    </button>
+                    {showCategoryDropdown && (
+                      <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-2">
+                        {categories.map((cat) => (
+                          <label
+                            key={cat}
+                            className="flex items-center px-2 py-2 cursor-pointer rounded-lg hover:bg-blue-50 transition-all duration-150"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(cat)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedCategories(prev => [...prev, cat]);
+                                } else {
+                                  setSelectedCategories(prev => prev.filter(c => c !== cat));
+                                }
+                              }}
+                              className="mr-2 accent-blue-600"
+                            />
+                            <span className={selectedCategories.includes(cat) ? "font-bold text-blue-700" : "text-gray-800"}>{cat}</span>
+                          </label>
+                        ))}
+                        <div className="flex justify-end mt-2">
+                          <button
+                            className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-all duration-150"
+                            onClick={() => setShowCategoryDropdown(false)}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-row gap-2">
+                    <button
+                      onClick={() => setShowSaved(false)}
+                      className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                        !showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      }`}
+                      style={{flexBasis: '120px', minWidth: '100px'}}
+                    >
+                      Events
+                    </button>
+                    <button
+                      onClick={() => setShowSaved(true)}
+                      className={`flex-1 min-w-0 px-2 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
+                        showSaved ? "bg-blue-600 text-white shadow-md" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      }`}
+                      style={{flexBasis: '120px', minWidth: '100px'}}
+                    >
+                      Saved ({savedEvents.length})
+                    </button>
                   </div>
                 </div>
               </div>
