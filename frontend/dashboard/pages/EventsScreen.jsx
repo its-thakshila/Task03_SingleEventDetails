@@ -9,6 +9,7 @@ const EventsScreen = () => {
   const [error, setError] = useState(null);
   const [hoveredEvent, setHoveredEvent] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [interestedMap, setInterestedMap] = useState({});
 
   const [myEvents, setMyEvents] = useState(() => {
     const saved = localStorage.getItem("myEvents");
@@ -55,15 +56,110 @@ const EventsScreen = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/events`);
+      const response = await fetch(`${API_BASE_URL}/api/events`, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch events");
       const data = await response.json();
       setEvents(data || []);
+      // Load interested status for each event
+      if (Array.isArray(data) && data.length) {
+        const pairs = await Promise.all(
+          data.map(async (e) => {
+            try {
+              const r = await fetch(`${API_BASE_URL}/api/interested/status/${e.event_id}`, {
+                credentials: "include",
+              });
+              if (!r.ok) return [e.event_id, false];
+              const j = await r.json();
+              return [e.event_id, Boolean(j?.interested)];
+            } catch {
+              return [e.event_id, false];
+            }
+          })
+        );
+        setInterestedMap(Object.fromEntries(pairs));
+      } else {
+        setInterestedMap({});
+      }
     } catch (error) {
       console.error("Error fetching events:", error);
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleInterested = async (event) => {
+    const id = event.event_id;
+    const prev = !!interestedMap[id];
+    const next = !prev;
+    // Optimistic UI
+    setInterestedMap((m) => ({ ...m, [id]: next }));
+    setEvents((list) =>
+      list.map((e) =>
+        e.event_id === id
+          ? {
+              ...e,
+              interested_count: Math.max(
+                Number(e.interested_count || 0) + (next ? 1 : -1),
+                0
+              ),
+            }
+          : e
+      )
+    );
+
+    try {
+      if (next) {
+        const r = await fetch(`${API_BASE_URL}/api/interested`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ event_id: id }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json().catch(() => null);
+        if (j?.interested_count != null) {
+          setEvents((list) =>
+            list.map((e) =>
+              e.event_id === id ? { ...e, interested_count: j.interested_count } : e
+            )
+          );
+        }
+      } else {
+        const r = await fetch(`${API_BASE_URL}/api/interested`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ event_id: id }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json().catch(() => null);
+        if (j?.interested_count != null) {
+          setEvents((list) =>
+            list.map((e) =>
+              e.event_id === id ? { ...e, interested_count: j.interested_count } : e
+            )
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Failed to toggle interested:", e);
+      // Revert
+      setInterestedMap((m) => ({ ...m, [id]: prev }));
+      setEvents((list) =>
+        list.map((e) =>
+          e.event_id === id
+            ? {
+                ...e,
+                interested_count: Math.max(
+                  Number(e.interested_count || 0) + (prev ? 1 : -1),
+                  0
+                ),
+              }
+            : e
+        )
+      );
+      alert("Sorry, something went wrong. Please try again.");
     }
   };
 
@@ -231,8 +327,18 @@ const EventsScreen = () => {
 
               {/* Buttons */}
               <div className="mt-4 flex gap-2">
-                <button className="flex-1 py-2 px-4 rounded-lg font-medium text-blue-600 border border-blue-600 bg-transparent hover:bg-blue-600 hover:text-white transition-colors">
-                  Interested
+                <button
+                  className={`flex-1 py-2 px-4 rounded-lg font-medium border transition-colors ${
+                    interestedMap[event.event_id]
+                      ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                      : "text-blue-600 border-blue-600 bg-transparent hover:bg-blue-600 hover:text-white"
+                  }`}
+                  onClick={() => toggleInterested(event)}
+                >
+                  <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                    <span>Interested</span>
+                    {interestedMap[event.event_id] && <span aria-hidden="true">✓</span>}
+                  </span>
                 </button>
                 <button
                   className="flex-1 py-2 px-4 rounded-lg font-medium text-red-600 border border-red-600 bg-transparent hover:bg-red-600 hover:text-white transition-colors"
