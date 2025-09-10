@@ -238,10 +238,10 @@ const EventsScreen = () => {
         )}
         
         {/* Debug info - remove this in production */}
-        <div className="mt-6 text-sm text-gray-500">
+        {/* <div className="mt-6 text-sm text-gray-500">
           <p>Saved Events: {JSON.stringify(savedEvents)}</p>
           <p>Interested Events: {JSON.stringify(interestedEvents)}</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
