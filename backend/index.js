@@ -65,7 +65,7 @@ app.use("/api", ratingsRoutes);
 
 app.use("/api", eventRoutes); // includes /events/:id and related
 
-app.use("/api/events", eventListRoutes);
+
 app.use("/api/interests", userinterestsRouter);
 
 
