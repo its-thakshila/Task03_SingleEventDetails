@@ -196,8 +196,6 @@ router.delete("/events/:eventId/ratings/me", async (req, res) => {
   }
 });
 
-module.exports = router;
-
 // GET /events/:eventId/ratings/all?limit=50&offset=0
 router.get("/events/:eventId/ratings/all", async (req, res) => {
   const { eventId } = req.params;
@@ -226,4 +224,4 @@ router.get("/events/:eventId/ratings/all", async (req, res) => {
   }
 });
 
-module.exports= router;
+module.exports = router;

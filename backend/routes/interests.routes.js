@@ -1,91 +1,16 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
-const { randomUUID } = require("crypto");
 const supabase = require("../db");
 
 const router = express.Router();
-const COOKIE_NAME = "userId";
 
-// set/read anonymous user cookie
-router.use(cookieParser());
-router.use((req, res, next) => {
-  let id = req.cookies?.[COOKIE_NAME];
-  if (!id) {
-    id = randomUUID();
-    res.cookie(COOKIE_NAME, id, {
-      httpOnly: true, sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 365, path: "/",
-    });
-  }
-  req.userId = id;
+// Use app-level cookieParser + cookie; just attach userId for convenience
+router.use((req, _res, next) => {
+  req.userId = req.cookies?.userId;
   next();
 });
 
-// GET all categories
-router.get("/categories", async (_req, res) => {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("category_id, category_name")
-    .order("category_name", { ascending: true });
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data || []);
-});
-
-// GET my interests (with names)
-router.get("/interests/me", async (req, res) => {
-  try {
-    const { data: rows, error } = await supabase
-      .from("interested_category")
-      .select("category_id")
-      .eq("user_id", req.userId);
-    if (error) throw error;
-
-    const ids = (rows || []).map(r => r.category_id);
-    if (!ids.length) return res.json({ user_id: req.userId, categories: [] });
-
-    const { data: cats, error: cerr } = await supabase
-      .from("categories")
-      .select("category_id, category_name")
-      .in("category_id", ids);
-    if (cerr) throw cerr;
-
-    res.json({ user_id: req.userId, categories: cats });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "server error" });
-  }
-});
-
-// POST replace my interests
-router.post("/interests/me", async (req, res) => {
-  try {
-    const categories = Array.isArray(req.body?.categories)
-      ? [...new Set(req.body.categories.map(String))]
-      : [];
-
-    // clear current
-    const { error: delErr } = await supabase
-      .from("interested_category")
-      .delete()
-      .eq("user_id", req.userId);
-    if (delErr) throw delErr;
-
-    if (!categories.length)
-      return res.json({ user_id: req.userId, saved: [] });
-
-    const rows = categories.map(id => ({ user_id: req.userId, category_id: id }));
-    const { error: insErr } = await supabase
-      .from("interested_category")
-      .insert(rows);
-    if (insErr) throw insErr;
-
-    res.json({ user_id: req.userId, saved: categories });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "server error" });
-  }
-});
+// NOTE: Category CRUD and "my interests" now live under /api/interests/*
+// (see userinterests.routes.js). This file focuses on discovery/recommendations.
 
 // GET events matching selected categories, includes category names
 router.get("/events/discover", async (req, res) => {
