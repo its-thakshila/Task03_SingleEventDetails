@@ -30,8 +30,10 @@ app.use(cookieParser());
 
 // Set a stable userId cookie if missing
 app.use((req, res, next) => {
-    if (!req.cookies.userId) {
-        res.cookie("userId", uuidv4(), {
+    let id = req.cookies.userId;
+    if (!id) {
+        id = uuidv4();
+        res.cookie("userId", id, {
             httpOnly: true,
             sameSite: "lax",
             secure: false,
@@ -39,6 +41,7 @@ app.use((req, res, next) => {
             path: "/",
         });
     }
+    req.userId = id;
     next();
 });
 
@@ -64,8 +67,6 @@ app.use("/api/events", eventListRoutes); // /api/events list
 app.use("/api", ratingsRoutes);
 
 app.use("/api", eventRoutes); // includes /events/:id and related
-
-app.use("/api/events", eventListRoutes);
 app.use("/api/interests", userinterestsRouter);
 
 
