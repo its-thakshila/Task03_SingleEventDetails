@@ -432,12 +432,15 @@ body {
 
 @media (max-width: 768px) {
     .event-content {
-        flex-direction: column;
+        flex-direction: column-reverse;
     }
 
     .photo-carousel {
         min-height: 250px;
-        order: -1;
+    }
+
+    .no-image-placeholder{
+        min-height: 250px;
     }
 
     .event-left-section {
@@ -496,6 +499,10 @@ body {
     .detail-icon {
         width: 16px;
         height: 16px;
+    }
+
+    .no-image-placeholder{
+        font-size: 30px;
     }
 
 }
