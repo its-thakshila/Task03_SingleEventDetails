@@ -1,16 +1,20 @@
-import { Pool } from "pg";
-import dotenv from "dotenv";
-dotenv.config();
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// dbtest.js
+// Simple connectivity test against Supabase (no external DB, no pg Pool).
+require('dotenv').config();
+const supabase = require('./db');
 
 (async () => {
   try {
-    const { rows } = await pool.query("SELECT NOW()");
-    console.log("✅ Connected! Server time:", rows[0].now);
+    // Head request to count rows in "events" (works even if table is empty)
+    const { error, count } = await supabase
+      .from('events')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) throw error;
+
+    console.log(`✅ Supabase reachable. 'events' row count: ${count ?? 0}`);
   } catch (err) {
-    console.error("❌ Connection error:", err);
-  } finally {
-    pool.end();
+    console.error('❌ Supabase connection error:', err.message);
+    process.exit(1);
   }
 })();
