@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Share2 } from 'lucide-react'; // for add share button 
 import { useParams, Link } from 'react-router-dom';
 import './SingleEventdetailPage.css';
 
@@ -135,6 +136,73 @@ export default function SingleEventDetailPage() {
             );
         }
     };
+
+
+    // share button 
+
+    // Assuming you have the event data stored in a state variable named 'event'
+    // and a function to show a brief message/toast named 'showUiMessage'
+
+    const showUiMessage = (message) => {
+        // Implement your existing UI message/toast logic here.
+        // E.g., setting a state variable that triggers a modal or toast.
+        console.log(message); // Temporary console log
+    };
+
+    /**
+     * Handles sharing the event details using the Web Share API or falling back to clipboard copy.
+     */
+    const handleShare = async () => {
+        // 1. Ensure event data exists
+        if (!event) {
+            showUiMessage('Cannot share, event data is missing.');
+            return;
+        }
+
+        const shareData = {
+            title: event.event_title || "Check out this Event!",
+            text: `Join us for: ${event.event_title} happening in ${event.location}!`,
+            // IMPORTANT: Use the current URL, which should be the correct single event route
+            url: window.location.href,
+        };
+
+        if (navigator.share) {
+            // Option A: Use Web Share API (Best for Mobile)
+            try {
+                await navigator.share(shareData);
+            } catch (error) {
+                // Ignore user cancellation (AbortError)
+                if (error.name !== 'AbortError') {
+                    console.error('Error sharing via Web Share API:', error);
+                    showUiMessage('Sharing failed.');
+                }
+            }
+        } else {
+            // Option B: Fallback to Copy URL to Clipboard (Best for Desktop/Unsupported)
+            try {
+                // Use the modern clipboard API
+                await navigator.clipboard.writeText(shareData.url);
+                showUiMessage('Event link copied to clipboard!');
+            } catch (err) {
+                // Fallback for older browsers or constrained environments (like some iframes)
+                try {
+                    // Legacy method: use execCommand
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = shareData.url;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    showUiMessage('Event link copied to clipboard!');
+                } catch (fallbackErr) {
+                    console.error('Final copy fallback failed:', fallbackErr);
+                    showUiMessage('Could not share or copy link.');
+                }
+            }
+        }
+    };
+
+    // share button end 
 
     const goToImage = (index) => setCurrentImageIndex(index);
     const toggleDescription = () => setIsDescriptionExpanded((v) => !v);
@@ -301,6 +369,15 @@ export default function SingleEventDetailPage() {
                         <img src={RateIcon} alt="Rate" className="rate-icon" />
                         Rate Event
                     </Link>
+
+                    {/* Example placement: In a group of secondary actions */}
+                    <button
+                        onClick={handleShare}
+                        className="share-button"
+                    >
+                        <Share2 className="w-5 h-5 mr-3" />
+                        Share Event
+                    </button>
                 </div>
 
                 {/* Right section with photo carousel */}

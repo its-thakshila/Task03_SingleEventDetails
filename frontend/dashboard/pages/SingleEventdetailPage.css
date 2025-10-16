@@ -260,7 +260,8 @@ body {
 }
 
 /* Rate event button */
-.rate-button {
+.rate-button,
+.share-button {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.9);
     color: white;
