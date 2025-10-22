@@ -1,10 +1,12 @@
 /* SingleEventDetailPage.css */
 
+/* [Shared] Base page layout */
 body {
     margin: 0px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* [Shared] Container */
 .event-detail-container {
     min-height: 100vh;
     background-color: #f8f9fa;
@@ -14,6 +16,7 @@ body {
     flex-direction: column;
 }
 
+/* [Shared] Back nav */
 .back-button {
     display: flex;
     align-items: center;
@@ -34,6 +37,7 @@ body {
     height: 12px;
 }
 
+/* [Shared] Main content split */
 .event-content {
     flex: 1;
     display: flex;
@@ -43,6 +47,7 @@ body {
     overflow: hidden;
 }
 
+/* [Left column] Holds Person 2, 3, 4 UI */
 .event-left-section {
     flex: 0 0 40%;
     padding: 40px 40px;
@@ -53,6 +58,7 @@ body {
     overflow-y: auto;
 }
 
+/* [Person 3] Header: title + description */
 .event-header {
     text-align: left;
 }
@@ -73,6 +79,7 @@ body {
     line-height: 1.2;
 }
 
+/* [Person 4] Status badge */
 .event-status {
     display: inline-block;
     background-color: #000000;
@@ -83,18 +90,9 @@ body {
     font-weight: 600;
     flex-shrink: 0;
 }
-
-.event-status.ongoing {
-    background-color: #0D6EFD;
-}
-
-.event-status.upcoming {
-    background-color: #0AAF7E;
-}
-
-.event-status.ended {
-    background-color: #D33B65;
-}
+.event-status.ongoing { background-color: #0D6EFD; }
+.event-status.upcoming { background-color: #0AAF7E; }
+.event-status.ended { background-color: #D33B65; }
 
 .event-description {
     color: #000000a8;
@@ -103,7 +101,7 @@ body {
     margin: 0;
 }
 
-/* Photo carousel styles */
+/* [Person 1] Photo carousel */
 .photo-carousel {
     flex: 1;
     background: #000000;
@@ -171,18 +169,9 @@ body {
     transition: all 0.2s ease;
     z-index: 10;
 }
-
-.carousel-navigation:hover {
-    background: rgba(255, 255, 255, 0.7);
-}
-
-.carousel-prev {
-    left: 20px;
-}
-
-.carousel-next {
-    right: 20px;
-}
+.carousel-navigation:hover { background: rgba(255, 255, 255, 0.7); }
+.carousel-prev { left: 20px; }
+.carousel-next { right: 20px; }
 
 .carousel-dots {
     position: absolute;
@@ -193,7 +182,6 @@ body {
     justify-content: center;
     gap: 8px;
 }
-
 .carousel-dot {
     width: 8px;
     height: 8px;
@@ -204,12 +192,9 @@ body {
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
+.carousel-dot.active { background-color: rgba(255, 255, 255, 0.8); }
 
-.carousel-dot.active {
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-/* Placeholder for when no image */
+/* [Person 1] No image placeholder */
 .no-image-placeholder {
     flex: 1;
     background: #000000;
@@ -222,7 +207,7 @@ body {
     min-width: 0;
 }
 
-/* Event details grid */
+/* [Person 3] Event details grid */
 .event-details {
     display: flex;
     flex-direction: column;
@@ -237,29 +222,12 @@ body {
     padding: 0;
 }
 
-.detail-icon {
-    width: 20px;
-    height: 20px;
-    margin-top: 2px;
-    flex-shrink: 0;
-}
+.detail-icon { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; }
+.detail-content { flex: 1; }
+.detail-label { display: none; }
+.detail-value { font-size: 16px; color: #1a1a1a; font-weight: 500; line-height: 1.4; }
 
-.detail-content {
-    flex: 1;
-}
-
-.detail-label {
-    display: none;
-}
-
-.detail-value {
-    font-size: 16px;
-    color: #1a1a1a;
-    font-weight: 500;
-    line-height: 1.4;
-}
-
-/* Rate event button */
+/* [Person 2] Rate + Share buttons container styles (shared look) */
 .rate-button,
 .share-button {
     width: 100%;
@@ -278,18 +246,13 @@ body {
     gap: 8px;
     margin-top: auto;
 }
-
 .rate-button:hover {
     background-color: rgba(0, 0, 0, 1);
     transform: translateY(-1px);
 }
+.rate-icon { width: 18px; height: 18px; }
 
-.rate-icon {
-    width: 18px;
-    height: 18px;
-}
-
-/* Loading and error states */
+/* [Shared] Loading / error states */
 .loading-container,
 .error-container,
 .not-found-container {
@@ -301,26 +264,11 @@ body {
     padding: 20px;
 }
 
-.loading-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #000000aa;
-}
+.loading-text { font-size: 18px; font-weight: 600; color: #000000aa; }
+.error-text { font-size: 18px; font-weight: 600; color: #D33B65; text-align: center; }
+.not-found-text { font-size: 18px; font-weight: 600; color: #000000aa; }
 
-.error-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #D33B65;
-    text-align: center;
-}
-
-.not-found-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #000000aa;
-}
-
-/* Mobile Navigation Bar - Initially hidden */
+/* [Shared] Mobile nav bar */
 .mobile-nav-bar {
     display: none;
     align-items: center;
@@ -331,42 +279,19 @@ body {
     position: relative;
     z-index: 100;
 }
-
 .mobile-back-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    color: #000000;
-    text-decoration: none;
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; color: #000000; text-decoration: none;
 }
-
-.mobile-back-icon {
-    width: 16px;
-    height: 16px;
-}
-
+.mobile-back-icon { width: 16px; height: 16px; }
 .mobile-nav-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 18px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0;
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-size: 18px; font-weight: 600; color: #000000; margin: 0;
 }
+.mobile-nav-spacer { width: 32px; height: 32px; }
 
-.mobile-nav-spacer {
-    width: 32px;
-    height: 32px;
-}
-
-/* Description container and toggle button */
-.event-description-container {
-    position: relative;
-}
-
+/* [Person 3] Description collapse/expand (mobile) */
+.event-description-container { position: relative; }
 .event-description {
     color: #000000a8;
     font-size: 14px;
@@ -374,25 +299,15 @@ body {
     margin: 0;
     transition: all 0.3s ease;
 }
-
 .description-toggle {
     display: none;
-    background: none;
-    border: none;
-    color: #000000;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0;
-    margin-top: 8px;
+    background: none; border: none; color: #000000;
+    font-size: 14px; font-weight: 500; cursor: pointer; padding: 0; margin-top: 8px;
     text-decoration: none;
 }
+.description-toggle:hover { text-decoration: underline; }
 
-.description-toggle:hover {
-    text-decoration: underline;
-}
-
-/* --- Interested button --- */
+/* [Person 2] Interested button */
 .interested-button {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.08);
@@ -409,62 +324,25 @@ body {
     gap: 8px;
     border: none;
 }
+.interested-button:hover { background-color: rgba(0, 0, 0, 0.12); transform: translateY(-1px); }
+.interested-button:disabled { cursor: not-allowed; transform: none; }
+.interested-button.active { background-color: #000000; color: #ffffff; }
+.interested-icon { width: 18px; height: 18px; }
+.interested-button.active .interested-icon { filter: invert(100%); }
 
-.interested-button:hover {
-    background-color: rgba(0, 0, 0, 0.12);
-    transform: translateY(-1px);
-}
-
-.interested-button:disabled {
-    cursor: not-allowed;
-    transform: none;
-}
-
-.interested-button.active {
-    background-color: #000000;
-    color: #ffffff;
-}
-
-.interested-icon {
-    width: 18px;
-    height: 18px;
-}
-
-.interested-button.active .interested-icon {
-    filter: invert(100%);
-}
-
+/* [Responsive] Column layout + mobile specifics */
 @media (max-width: 768px) {
-    .event-content {
-        flex-direction: column-reverse;
-    }
+    .event-content { flex-direction: column-reverse; }
+    .photo-carousel { flex: 0 0 auto; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+    .no-image-placeholder { min-height: 250px; }
+    .event-left-section { padding: 20px; }
 
-    .photo-carousel {
-        flex: 0 0 auto;
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        background: #000;
-    }
+    /* mobile nav visible */
+    .mobile-nav-bar { display: flex; }
+    /* hide desktop back button */
+    .back-button { display: none; }
 
-    .no-image-placeholder {
-        min-height: 250px;
-    }
-
-    .event-left-section {
-        padding: 20px;
-    }
-
-    /* Show mobile navigation bar */
-    .mobile-nav-bar {
-        display: flex;
-    }
-
-    /* Hide desktop back button */
-    .back-button {
-        display: none;
-    }
-
-    /* Collapsible description */
+    /* [Person 3] collapsible description on mobile */
     .event-description {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -473,43 +351,20 @@ body {
         text-overflow: ellipsis;
         line-clamp: 2;
     }
-
     .event-description.expanded {
         display: block;
         -webkit-line-clamp: unset;
         line-clamp: unset;
         overflow: visible;
     }
-
-    .description-toggle {
-        display: inline-block;
-    }
+    .description-toggle { display: inline-block; }
 }
 
 @media (max-width: 480px) {
-    .event-title {
-        font-size: 24px;
-    }
-
-    .event-description {
-        font-size: 13px;
-    }
-
-    .detail-value {
-        font-size: 15px;
-    }
-
-    .event-status {
-        padding: 4px 12px;
-    }
-
-    .detail-icon {
-        width: 16px;
-        height: 16px;
-    }
-
-    .no-image-placeholder {
-        font-size: 30px;
-    }
-
+    .event-title { font-size: 24px; }
+    .event-description { font-size: 13px; }
+    .detail-value { font-size: 15px; }
+    .event-status { padding: 4px 12px; }
+    .detail-icon { width: 16px; height: 16px; }
+    .no-image-placeholder { font-size: 30px; }
 }

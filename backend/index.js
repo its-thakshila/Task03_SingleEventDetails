@@ -6,8 +6,9 @@ const { v4: uuidv4 } = require("uuid");
 const supabase = require("./db");
 const cors = require("cors");
 
-// routes
+// routes (only events.routes is relevant to Single Event Details page)
 const eventRoutes = require("./routes/events.routes");
+// (mounted but not used by this page; left as-is without edits)
 const ratingsRoutes = require("./routes/ratings.routes");
 const eventListRoutes = require("./routes/eventlist.routes");
 const interestsRouter = require("./routes/interests.routes");
@@ -27,7 +28,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Set a stable userId cookie if missing
+// [Shared for this page] set a stable userId cookie for "Interested" feature
 app.use((req, res, next) => {
   if (!req.cookies.userId) {
     res.cookie("userId", uuidv4(), {
@@ -41,7 +42,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ------------------- TEST ROUTE -------------------
+// ------------------- TEST ROUTE (not part of the page) -------------------
 app.get("/", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -56,12 +57,14 @@ app.get("/", async (req, res) => {
   }
 });
 
-// ------------------- USE ROUTES -------------------
-// Mount more specific /api/events/* routes before /api/events/:id
-app.use("/api", interestsRouter); // includes /events/recommended, /events/discover, etc.
-app.use("/api/events", eventListRoutes); // /api/events list
+// ------------------- ROUTES -------------------
+// [Used by Single Event Details page]
+app.use("/api", eventRoutes); // includes /events/:id, /events/:id/status, /interested*
+
+// (Mounted but not used by the Single Event Details page)
+app.use("/api", interestsRouter);
+app.use("/api/events", eventListRoutes);
 app.use("/api", ratingsRoutes);
-app.use("/api", eventRoutes); // includes /events/:id and related
 app.use("/api/interests", userinterestsRouter);
 
 // ------------------- START SERVER -------------------

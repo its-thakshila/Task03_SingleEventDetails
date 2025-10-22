@@ -1,5 +1,12 @@
+// [Single Event Details Page ONLY]
+// Ownership map:
+//   - Person 1: Event Image (carousel)
+//   - Person 2: Interested button (Rate button is navigation-only on this page)
+//   - Person 3: Event details (title, description, time, venue)
+//   - Person 4: Event status badge + Share button
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Share2 } from 'lucide-react'; // for add share button 
+import { Share2 } from 'lucide-react'; // [Person 4] Share button icon
 import { useParams, Link } from 'react-router-dom';
 import './SingleEventdetailPage.css';
 
@@ -12,13 +19,19 @@ import ArrowLeftIcon from '../icons/arrow-left.svg';
 const API_BASE_URL = typeof __backend_url !== 'undefined' ? __backend_url : 'http://localhost:3000';
 
 export default function SingleEventDetailPage() {
+    // [Shared page state]
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // [Person 4] Event status badge state
     const [status, setStatus] = useState(null);
+
+    // [Person 1] Carousel state
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
+    // [Person 2] Interested button state
     const [isInterested, setIsInterested] = useState(false);
     const [interestPending, setInterestPending] = useState(false);
 
@@ -27,7 +40,7 @@ export default function SingleEventDetailPage() {
 
     const interestedReqIdRef = useRef(0);
 
-    // Fetch event details
+    // [Person 3] Fetch event details (title, description, time, venue, photos, interested_count)
     useEffect(() => {
         if (eventId == null) {
             setError('Invalid event ID.');
@@ -61,7 +74,7 @@ export default function SingleEventDetailPage() {
         return () => controller.abort();
     }, [eventId]);
 
-    // Fetch event status
+    // [Person 4] Fetch event status (Upcoming/Ongoing/Ended)
     useEffect(() => {
         if (eventId == null) return;
         const controller = new AbortController();
@@ -83,7 +96,7 @@ export default function SingleEventDetailPage() {
         return () => controller.abort();
     }, [eventId]);
 
-    // Fetch interested status
+    // [Person 2] Fetch interested status for this user/event (cookie-based identity)
     useEffect(() => {
         if (eventId == null) return;
         const controller = new AbortController();
@@ -108,6 +121,7 @@ export default function SingleEventDetailPage() {
         return () => controller.abort();
     }, [eventId]);
 
+    // [Person 3] Utility: format start/end times for display
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const options = {
@@ -121,6 +135,7 @@ export default function SingleEventDetailPage() {
         return new Date(dateString).toLocaleString('en-US', options);
     };
 
+    // [Person 1] Carousel controls
     const goToNextImage = () => {
         if (event?.event_photos?.length > 1) {
             setCurrentImageIndex((prev) =>
@@ -137,23 +152,14 @@ export default function SingleEventDetailPage() {
         }
     };
 
-
-    // share button 
-
-    // Assuming you have the event data stored in a state variable named 'event'
-    // and a function to show a brief message/toast named 'showUiMessage'
-
+    // [Person 4] Share button helpers (UI-only feedback hook)
     const showUiMessage = (message) => {
-        // Implement your existing UI message/toast logic here.
-        // E.g., setting a state variable that triggers a modal or toast.
-        console.log(message); // Temporary console log
+        // Plug your toast/snackbar here if needed
+        console.log(message);
     };
 
-    /**
-     * Handles sharing the event details using the Web Share API or falling back to clipboard copy.
-     */
+    // [Person 4] Handle Share (Web Share API or clipboard fallback)
     const handleShare = async () => {
-        // 1. Ensure event data exists
         if (!event) {
             showUiMessage('Cannot share, event data is missing.');
             return;
@@ -162,31 +168,24 @@ export default function SingleEventDetailPage() {
         const shareData = {
             title: event.event_title || "Check out this Event!",
             text: `Join us for: ${event.event_title} happening in ${event.location}!`,
-            // IMPORTANT: Use the current URL, which should be the correct single event route
-            url: window.location.href,
+            url: window.location.href, // deep link to this event
         };
 
         if (navigator.share) {
-            // Option A: Use Web Share API (Best for Mobile)
             try {
                 await navigator.share(shareData);
             } catch (error) {
-                // Ignore user cancellation (AbortError)
                 if (error.name !== 'AbortError') {
                     console.error('Error sharing via Web Share API:', error);
                     showUiMessage('Sharing failed.');
                 }
             }
         } else {
-            // Option B: Fallback to Copy URL to Clipboard (Best for Desktop/Unsupported)
             try {
-                // Use the modern clipboard API
                 await navigator.clipboard.writeText(shareData.url);
                 showUiMessage('Event link copied to clipboard!');
             } catch (err) {
-                // Fallback for older browsers or constrained environments (like some iframes)
                 try {
-                    // Legacy method: use execCommand
                     const tempInput = document.createElement('textarea');
                     tempInput.value = shareData.url;
                     document.body.appendChild(tempInput);
@@ -202,11 +201,12 @@ export default function SingleEventDetailPage() {
         }
     };
 
-    // share button end 
-
+    // [Person 1] Carousel helper
     const goToImage = (index) => setCurrentImageIndex(index);
+    // [Person 3] Description expand/collapse (mobile)
     const toggleDescription = () => setIsDescriptionExpanded((v) => !v);
 
+    // [Person 2] Interested toggle (optimistic UI + rollback on error)
     const handleToggleInterested = async () => {
         if (!event || interestPending || eventId == null) return;
         setInterestPending(true);
@@ -263,6 +263,7 @@ export default function SingleEventDetailPage() {
         }
     };
 
+    // [Shared] Loading / error / not found states
     if (loading) {
         return (
             <div className="loading-container">
@@ -287,13 +288,14 @@ export default function SingleEventDetailPage() {
         );
     }
 
+    // [Person 3] Compute date range for details section
     const startDate = formatDate(event.start_time);
     const endDate = formatDate(event.end_time);
     const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : startDate || endDate || 'N/A';
 
     return (
         <div className="event-detail-container">
-            {/* Mobile Navigation Bar */}
+            {/* [Shared] Mobile Navigation Bar */}
             <div className="mobile-nav-bar">
                 <Link to="/" className="mobile-back-button">
                     <img src={ArrowLeftIcon} alt="Back" className="mobile-back-icon" />
@@ -304,14 +306,17 @@ export default function SingleEventDetailPage() {
 
             <div className="event-content">
                 <div className="event-left-section">
+                    {/* [Shared] Desktop back */}
                     <Link to="/" className="back-button">
                         <img src={ArrowLeftIcon} alt="Back" className="back-icon" />
                         Back
                     </Link>
 
+                    {/* [Person 3] Event title + description */}
                     <div className="event-header">
                         <div className="event-title-row">
                             <h1 className="event-title">{event.event_title}</h1>
+                            {/* [Person 4] Status badge */}
                             {status && (
                                 <span className={`event-status ${status.toLowerCase()}`}>
                                     {status}
@@ -329,6 +334,7 @@ export default function SingleEventDetailPage() {
                         </div>
                     </div>
 
+                    {/* [Person 2] Interested button */}
                     <button
                         className={`interested-button ${isInterested ? 'active' : ''}`}
                         onClick={handleToggleInterested}
@@ -339,6 +345,7 @@ export default function SingleEventDetailPage() {
                         Interested
                     </button>
 
+                    {/* [Person 3] Event details (time, venue, interested count display) */}
                     <div className="event-details">
                         <div className="detail-item">
                             <img src={ClockIcon} alt="Time" className="detail-icon" />
@@ -364,13 +371,13 @@ export default function SingleEventDetailPage() {
                         </div>
                     </div>
 
-                    {/* Rate Event button -> FeedbackPage */}
+                    {/* [Person 2] Rate Event button (navigation to Rate page only) */}
                     <Link to={`/events/${eventId}/feedback`} className="rate-button">
                         <img src={RateIcon} alt="Rate" className="rate-icon" />
                         Rate Event
                     </Link>
 
-                    {/* Example placement: In a group of secondary actions */}
+                    {/* [Person 4] Share button */}
                     <button
                         onClick={handleShare}
                         className="share-button"
@@ -380,7 +387,7 @@ export default function SingleEventDetailPage() {
                     </button>
                 </div>
 
-                {/* Right section with photo carousel */}
+                {/* [Person 1] Photo carousel */}
                 {event.event_photos && event.event_photos.length > 0 ? (
                     <div className="photo-carousel">
                         <div className={`carousel-container ${event.event_photos.length === 1 ? 'single-image' : ''}`}>

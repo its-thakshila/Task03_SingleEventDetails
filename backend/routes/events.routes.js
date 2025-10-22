@@ -4,6 +4,7 @@ const supabase = require("../db");
 
 const router = express.Router();
 
+// [Person 3: Event details (field mapping used by single-field endpoints)]
 const fieldMap = {
     title: "event_title",
     description: "description",
@@ -16,7 +17,7 @@ const fieldMap = {
 
 // ------------------- EVENT ROUTES -------------------
 
-// Get event details
+// [Person 3: Event details] GET full event with photos (used by Single Event Details page)
 router.get("/events/:id", async (req, res) => {
     const { id } = req.params;
     const idNum = Number(id);
@@ -50,7 +51,7 @@ router.get("/events/:id", async (req, res) => {
     }
 });
 
-// Get a specific field (title, description, etc.)
+// [Person 3: Optional single-field getters for details UI]
 Object.keys(fieldMap).forEach((field) => {
     router.get(`/events/:id/${field}`, async (req, res) => {
         const { id } = req.params;
@@ -86,7 +87,7 @@ Object.keys(fieldMap).forEach((field) => {
     });
 });
 
-// Event photos
+// [Person 1: Event photos (alternative endpoint; page currently uses photos via /events/:id)]
 router.get("/events/:id/photos", async (req, res) => {
     const { id } = req.params;
     const idNum = Number(id);
@@ -107,7 +108,7 @@ router.get("/events/:id/photos", async (req, res) => {
     }
 });
 
-// Event status (Upcoming, Ongoing, Ended)
+// [Person 4: Event status badge] GET computed status (Upcoming/Ongoing/Ended)
 router.get("/events/:id/status", async (req, res) => {
     const { id } = req.params;
     const idNum = Number(id);
@@ -143,7 +144,7 @@ router.get("/events/:id/status", async (req, res) => {
 
 // ------------------- INTERESTED EVENTS -------------------
 
-// Mark event as interested
+// [Person 2: Interested button] Mark event as interested (insert + increment count)
 router.post("/interested", async (req, res) => {
     const { event_id } = req.body;
     const user_id = req.cookies.userId;
@@ -201,7 +202,7 @@ router.post("/interested", async (req, res) => {
     }
 });
 
-// Remove interested
+// [Person 2: Interested button] Remove interested (delete + decrement count)
 router.delete("/interested", async (req, res) => {
     const { event_id } = req.body;
     const user_id = req.cookies.userId;
@@ -238,7 +239,7 @@ router.delete("/interested", async (req, res) => {
     }
 });
 
-// Check interested status for a user
+// [Person 2: Interested button] Check current user's interested status
 router.get("/interested/status/:event_id", async (req, res) => {
     const { event_id } = req.params;
     const user_id = req.cookies.userId;
@@ -262,31 +263,7 @@ router.get("/interested/status/:event_id", async (req, res) => {
     }
 });
 
-// Get all interested events of a user
-router.get("/interested/:user_id", async (req, res) => {
-    const { user_id } = req.params;
-    try {
-        const { data, error } = await supabase
-            .from("interested_events")
-            .select(`
-                event_id,
-                events (
-                    event_title,
-                    location,
-                    start_time,
-                    end_time
-                )
-            `)
-            .eq("user_id", user_id);
-        if (error) throw error;
-        res.json({ interestedEvents: data });
-    } catch (err) {
-        console.error("❌ Failed to fetch interested events:", err.message);
-        res.status(500).json({ error: "Failed to fetch interested events" });
-    }
-});
-
-// Interested count
+// [Person 2: (aux)] Interested count for an event
 router.get("/events/:id/interested_counts", async (req, res) => {
     const { id } = req.params;
     const idNum = Number(id);
