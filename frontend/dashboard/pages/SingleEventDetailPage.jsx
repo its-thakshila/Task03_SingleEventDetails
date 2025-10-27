@@ -9,7 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Share2 } from 'lucide-react'; // [Person 4] Share button icon
 import { useParams, Link } from 'react-router-dom';
 import './SingleEventdetailPage.css';
-import { API } from '../api';
+import { API } from '../src/api';
 
 import ClockIcon from '../icons/clock.svg';
 import LocationIcon from '../icons/location.svg';
