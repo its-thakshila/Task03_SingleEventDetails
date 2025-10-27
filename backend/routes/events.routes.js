@@ -145,150 +145,154 @@ router.get("/events/:id/status", async (req, res) => {
 // ------------------- INTERESTED EVENTS -------------------
 
 // [Person 2: Interested button] Mark event as interested (insert + increment count)
-router.post("/interested", async (req, res) => {
-    const { event_id } = req.body;
-    const user_id = req.cookies.userId;
-    if (!event_id) return res.status(400).json({ error: "event_id is required" });
+router.post("/interested", async (req, res) => { // Route to mark an event as interested
+    const { event_id } = req.body; // Get event_id from request body
+    const user_id = req.cookies.userId; // Get user_id from cookies
 
-    try {
-        const { data: existing, error: checkError } = await supabase
-            .from("interested_events")
-            .select("event_id")
-            .eq("user_id", user_id)
-            .eq("event_id", event_id)
-            .limit(1);
-        if (checkError) throw checkError;
+    if (!event_id) return res.status(400).json({ error: "event_id is required" }); // Check if event_id is missing
 
-        if (existing.length > 0) {
-            const { data: eventData, error: fetchError } = await supabase
-                .from("events")
-                .select("interested_count")
-                .eq("event_id", event_id)
-                .single();
-            if (fetchError) throw fetchError;
-            return res.json({
-                message: "Already marked as interested",
-                interested_count: Number(eventData?.interested_count) || 0,
+    try { // Start try block for database operations
+        const { data: existing, error: checkError } = await supabase // Query to check if already interested
+            .from("interested_events") // From interested_events table
+            .select("event_id") // Select event_id column
+            .eq("user_id", user_id) // Match by user_id
+            .eq("event_id", event_id) // Match by event_id
+            .limit(1); // Limit to 1 result
+        if (checkError) throw checkError; // Throw if query error
+
+        if (existing.length > 0) { // If user already marked interested
+            const { data: eventData, error: fetchError } = await supabase // Get event data
+                .from("events") // From events table
+                .select("interested_count") // Select interested_count
+                .eq("event_id", event_id) // Match event_id
+                .single(); // Expect one result
+            if (fetchError) throw fetchError; // Throw if fetch error
+
+            return res.json({ // Return existing message and count
+                message: "Already marked as interested", // Info message
+                interested_count: Number(eventData?.interested_count) || 0, // Return current count
             });
         }
 
-        const { error: insertError } = await supabase
-            .from("interested_events")
-            .insert([{ user_id, event_id }]);
-        if (insertError) throw insertError;
+        const { error: insertError } = await supabase // Insert new interested record
+            .from("interested_events") // Into interested_events table
+            .insert([{ user_id, event_id }]); // Insert user_id and event_id
+        if (insertError) throw insertError; // Throw if insert fails
 
-        const { data: eventData, error: fetchError } = await supabase
-            .from("events")
-            .select("interested_count")
-            .eq("event_id", event_id)
-            .single();
-        if (fetchError) throw fetchError;
+        const { data: eventData, error: fetchError } = await supabase // Fetch current interested count
+            .from("events") // From events table
+            .select("interested_count") // Select interested_count
+            .eq("event_id", event_id) // Match event_id
+            .single(); // Expect one result
+        if (fetchError) throw fetchError; // Throw if fetch error
 
-        const newCount = (Number(eventData?.interested_count) || 0) + 1;
+        const newCount = (Number(eventData?.interested_count) || 0) + 1; // Increment count by 1
 
-        const { error: updateError } = await supabase
-            .from("events")
-            .update({ interested_count: newCount })
-            .eq("event_id", event_id);
-        if (updateError) throw updateError;
+        const { error: updateError } = await supabase // Update interested_count in events table
+            .from("events") // From events table
+            .update({ interested_count: newCount }) // Set new interested_count
+            .eq("event_id", event_id); // Match by event_id
+        if (updateError) throw updateError; // Throw if update fails
 
-        res.status(201).json({
-            message: `Event ${event_id} marked as interested`,
-            interested_count: newCount,
+        res.status(201).json({ // Send success response
+            message: `Event ${event_id} marked as interested`, // Success message
+            interested_count: newCount, // Return new count
         });
-    } catch (err) {
-        console.error("❌ Failed to mark interested:", err.message);
-        res.status(500).json({ error: "Failed to mark event as interested" });
+    } catch (err) { // Catch any error
+        console.error("❌ Failed to mark interested:", err.message); // Log error to console
+        res.status(500).json({ error: "Failed to mark event as interested" }); // Send error response
     }
-});
+}); // End POST route
 
 // [Person 2: Interested button] Remove interested (delete + decrement count)
-router.delete("/interested", async (req, res) => {
-    const { event_id } = req.body;
-    const user_id = req.cookies.userId;
-    if (!event_id) return res.status(400).json({ error: "event_id is required" });
-    if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
+router.delete("/interested", async (req, res) => { // Route to remove interested status
+    const { event_id } = req.body; // Get event_id from body
+    const user_id = req.cookies.userId; // Get user_id from cookies
 
-    try {
-        const { error: deleteError } = await supabase
-            .from("interested_events")
-            .delete()
-            .eq("user_id", user_id)
-            .eq("event_id", event_id);
-        if (deleteError) throw deleteError;
+    if (!event_id) return res.status(400).json({ error: "event_id is required" }); // Validate event_id
+    if (!user_id) return res.status(400).json({ error: "userId cookie is missing" }); // Validate user_id
 
-        const { data: eventData, error: fetchError } = await supabase
-            .from("events")
-            .select("interested_count")
-            .eq("event_id", event_id)
-            .single();
-        if (fetchError) throw fetchError;
+    try { // Start try block
+        const { error: deleteError } = await supabase // Delete record from interested_events
+            .from("interested_events") // From interested_events table
+            .delete() // Delete operation
+            .eq("user_id", user_id) // Match user_id
+            .eq("event_id", event_id); // Match event_id
+        if (deleteError) throw deleteError; // Throw if delete fails
 
-        const newCount = Math.max((Number(eventData?.interested_count) || 1) - 1, 0);
+        const { data: eventData, error: fetchError } = await supabase // Get current interested_count
+            .from("events") // From events table
+            .select("interested_count") // Select interested_count
+            .eq("event_id", event_id) // Match event_id
+            .single(); // Expect one result
+        if (fetchError) throw fetchError; // Throw if fetch error
 
-        const { error: updateError } = await supabase
-            .from("events")
-            .update({ interested_count: newCount })
-            .eq("event_id", event_id);
-        if (updateError) throw updateError;
+        const newCount = Math.max((Number(eventData?.interested_count) || 1) - 1, 0); // Decrease count but not below 0
 
-        res.json({ message: "Event removed from interested list", interested_count: newCount });
-    } catch (err) {
-        console.error("❌ Failed to remove event:", err.message);
-        res.status(500).json({ error: "Failed to remove event" });
+        const { error: updateError } = await supabase // Update events table
+            .from("events") // From events table
+            .update({ interested_count: newCount }) // Set new count
+            .eq("event_id", event_id); // Match event_id
+        if (updateError) throw updateError; // Throw if update fails
+
+        res.json({ message: "Event removed from interested list", interested_count: newCount }); // Send success response
+    } catch (err) { // Catch errors
+        console.error("❌ Failed to remove event:", err.message); // Log error
+        res.status(500).json({ error: "Failed to remove event" }); // Send error response
     }
-});
+}); // End DELETE route
 
 // [Person 2: Interested button] Check current user's interested status
-router.get("/interested/status/:event_id", async (req, res) => {
-    const { event_id } = req.params;
-    const user_id = req.cookies.userId;
-    if (!event_id) return res.status(400).json({ error: "event_id is required" });
-    if (!user_id) return res.status(400).json({ error: "userId cookie is missing" });
+router.get("/interested/status/:event_id", async (req, res) => { // Route to check interested status
+    const { event_id } = req.params; // Get event_id from params
+    const user_id = req.cookies.userId; // Get user_id from cookies
 
-    try {
-        const { data, error } = await supabase
-            .from("interested_events")
-            .select("event_id")
-            .eq("user_id", user_id)
-            .eq("event_id", event_id)
-            .limit(1);
-        if (error) throw error;
+    if (!event_id) return res.status(400).json({ error: "event_id is required" }); // Validate event_id
+    if (!user_id) return res.status(400).json({ error: "userId cookie is missing" }); // Validate user_id
 
-        const interested = Array.isArray(data) && data.length > 0;
-        res.json({ event_id: Number(event_id), interested });
-    } catch (err) {
-        console.error("❌ Failed to fetch interested status:", err.message);
-        res.status(500).json({ error: "Failed to fetch interested status" });
+    try { // Try block
+        const { data, error } = await supabase // Query interested_events
+            .from("interested_events") // From interested_events table
+            .select("event_id") // Select event_id
+            .eq("user_id", user_id) // Match user_id
+            .eq("event_id", event_id) // Match event_id
+            .limit(1); // Limit to one
+        if (error) throw error; // Throw if query error
+
+        const interested = Array.isArray(data) && data.length > 0; // Check if interested
+        res.json({ event_id: Number(event_id), interested }); // Return result
+    } catch (err) { // Catch errors
+        console.error("❌ Failed to fetch interested status:", err.message); // Log error
+        res.status(500).json({ error: "Failed to fetch interested status" }); // Send error response
     }
-});
+}); // End GET route
 
 // [Person 2: (aux)] Interested count for an event
-router.get("/events/:id/interested_counts", async (req, res) => {
-    const { id } = req.params;
-    const idNum = Number(id);
-    if (!Number.isFinite(idNum)) {
-        return res.status(400).json({ error: "Invalid event id" });
-    }
-    try {
-        const { data, error } = await supabase
-            .from("events")
-            .select("interested_count")
-            .eq("event_id", idNum)
-            .single();
-        if (error) throw error;
-        if (!data) return res.status(404).json({ error: "Event not found" });
-        res.json({
-            event_id: idNum,
-            interested_count: Number(data.interested_count) || 0,
-        });
-    } catch (err) {
-        console.error(
-            `❌ Failed to fetch interested count for event ${id}:`,
-            err.message
-        );
-        res.status(500).json({ error: "Failed to fetch interested count" });
-    }
-});
+router.get("/events/:id/interested_counts", async (req, res) => { // Route to get interested count
+    const { id } = req.params; // Get event id from params
+    const idNum = Number(id); // Convert id to number
 
-module.exports = router;
+    if (!Number.isFinite(idNum)) { // Validate id
+        return res.status(400).json({ error: "Invalid event id" }); // Return error if invalid
+    }
+
+    try { // Start try block
+        const { data, error } = await supabase // Query events table
+            .from("events") // From events table
+            .select("interested_count") // Select interested_count
+            .eq("event_id", idNum) // Match event_id
+            .single(); // Expect one result
+        if (error) throw error; // Throw if query error
+        if (!data) return res.status(404).json({ error: "Event not found" }); // If no data found
+
+        res.json({ // Send response
+            event_id: idNum, // Include event id
+            interested_count: Number(data.interested_count) || 0, // Include interested count
+        });
+    } catch (err) { // Catch block
+        console.error(`❌ Failed to fetch interested count for event ${id}:`, err.message); // Log error
+        res.status(500).json({ error: "Failed to fetch interested count" }); // Send error response
+    }
+}); // End GET route
+
+module.exports = router; // Export router module
