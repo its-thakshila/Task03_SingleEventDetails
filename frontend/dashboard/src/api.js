@@ -1,4 +1,5 @@
-export const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// Use same-origin proxy in production; localhost for dev is still fine via Vite proxy or by setting VITE_API_URL.
+export const API = import.meta.env.VITE_API_URL || "";
 
 export async function apiGet(path) {
   const r = await fetch(`${API}${path}`, { credentials: "include" });

@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://task03-single-event-details.vercel.app/api/$1" },
+    { "source": "/((?!api).*)", "destination": "/" }
+  ]
+}
