@@ -16,8 +16,8 @@ router.use((req, res, next) => { // Middleware to handle user cookie
     id = randomUUID(); // Generate a new unique ID
     res.cookie(COOKIE_NAME, id, { // Set new cookie in response
       httpOnly: true, // Prevent client-side JS access for security
-      sameSite: "lax", // Restrict cross-site sending of cookies
-      secure: process.env.NODE_ENV === "production", // Use secure flag in production
+      sameSite: "none",
+      secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 365, // Set cookie to last 1 year
       path: "/", // Make cookie valid for all routes
     });
@@ -127,7 +127,7 @@ router.get("/events/discover", async (req, res) => {
     // categories for those events
     const neededCatIds = [...new Set(
       (mapRows || []).filter(m => matchingEventIds.includes(m.event_id))
-                     .map(m => m.category_id)
+        .map(m => m.category_id)
     )];
     const { data: cats, error: cErr } = await supabase
       .from("categories")
@@ -139,7 +139,7 @@ router.get("/events/discover", async (req, res) => {
     const items = events.map(ev => {
       const evCatIds = [...new Set(
         (mapRows || []).filter(m => m.event_id === ev.event_id)
-                       .map(m => m.category_id)
+          .map(m => m.category_id)
       )];
       return {
         ...ev,

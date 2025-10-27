@@ -17,13 +17,20 @@ const userinterestsRouter = require("./routes/userinterests.routes");
 const app = express();
 const PORT = 3000;
 
-const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
-app.use(
-  cors({
-    origin: allowedOrigin,
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN,        // e.g. https://your-frontend.vercel.app
+  "http://localhost:5173"
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow non-browser tools (curl/postman with no Origin) and allowed origins
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error("Not allowed by CORS: " + origin));
+  },
+  credentials: true
+}));
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -33,8 +40,8 @@ app.use((req, res, next) => {
   if (!req.cookies.userId) {
     res.cookie("userId", uuidv4(), {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      secure: true,
       maxAge: 31536000000, // 1 year
       path: "/",
     });

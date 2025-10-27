@@ -16,8 +16,8 @@ router.use((req, res, next) => {
     id = randomUUID();
     res.cookie(name, id, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      secure: true,
       maxAge: 1000 * 60 * 60 * 24 * 365
     });
   }
@@ -31,7 +31,7 @@ function parseRatingRow(row) {
     const obj = JSON.parse(row.text_content);
     if (!obj || obj.type !== "rating") return null;
     const r = Number(obj.rating);
-    if (![1,2,3,4,5].includes(r)) return null;
+    if (![1, 2, 3, 4, 5].includes(r)) return null;
     return {
       feedback_id: row.feedback_id,
       event_id: row.event_id,
@@ -50,7 +50,7 @@ router.post("/events/:eventId/ratings", async (req, res) => {
   const { eventId } = req.params;
   const { rating, comment } = req.body || {};
   const r = Number(rating);
-  if (![1,2,3,4,5].includes(r)) {
+  if (![1, 2, 3, 4, 5].includes(r)) {
     return res.status(400).json({ error: "rating must be 1..5" });
   }
 
@@ -148,7 +148,7 @@ router.get("/events/:eventId/ratings/summary", async (req, res) => {
       .map(parseRatingRow)
       .filter(Boolean);
 
-    const histogram = { "1":0, "2":0, "3":0, "4":0, "5":0 };
+    const histogram = { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 };
     let sum = 0;
     for (const x of ratings) {
       histogram[String(x.rating)]++;
@@ -226,4 +226,4 @@ router.get("/events/:eventId/ratings/all", async (req, res) => {
   }
 });
 
-module.exports= router;
+module.exports = router;
