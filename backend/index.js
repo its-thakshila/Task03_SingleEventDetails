@@ -34,7 +34,7 @@ app.use((req, res, next) => {
     res.cookie("userId", uuidv4(), {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 31536000000, // 1 year
       path: "/",
     });
@@ -68,6 +68,13 @@ app.use("/api", ratingsRoutes);
 app.use("/api/interests", userinterestsRouter);
 
 // ------------------- START SERVER -------------------
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+const isVercel = Boolean(process.env.VERCEL);
+
+if (!isVercel) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+// Export the app for Vercel serverless
+module.exports = app;
