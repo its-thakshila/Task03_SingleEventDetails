@@ -1,27 +1,33 @@
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const { randomUUID } = require("crypto");
-const supabase = require("../db");
+const express = require("express"); // Import Express framework
+const cookieParser = require("cookie-parser"); // Import cookie parser middleware
+const { randomUUID } = require("crypto"); // Import randomUUID to generate unique IDs
+const supabase = require("../db"); // Import Supabase database instance
 
-const router = express.Router();
-const COOKIE_NAME = "userId";
+const router = express.Router(); // Create a new Express router
+const COOKIE_NAME = "userId"; // Define cookie name constant
 
 // set/read anonymous user cookie
-router.use(cookieParser());
-router.use((req, res, next) => {
-  let id = req.cookies?.[COOKIE_NAME];
-  if (!id) {
-    id = randomUUID();
-    res.cookie(COOKIE_NAME, id, {
-      httpOnly: true, sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 365, path: "/",
+router.use(cookieParser()); // Use cookie parser for all routes
+
+router.use((req, res, next) => { // Middleware to handle user cookie
+  let id = req.cookies?.[COOKIE_NAME]; // Read existing userId cookie if it exists
+
+  if (!id) { // If no cookie found
+    id = randomUUID(); // Generate a new unique ID
+    res.cookie(COOKIE_NAME, id, { // Set new cookie in response
+      httpOnly: true, // Prevent client-side JS access for security
+      sameSite: "lax", // Restrict cross-site sending of cookies
+      secure: process.env.NODE_ENV === "production", // Use secure flag in production
+      maxAge: 1000 * 60 * 60 * 24 * 365, // Set cookie to last 1 year
+      path: "/", // Make cookie valid for all routes
     });
   }
-  req.userId = id;
-  next();
-});
 
+  req.userId = id; // Attach userId to request object for later use
+  next(); // Continue to next middleware or route handler
+}); // End of cookie middleware
+
+//-----------------------------------------------------------------------------------------------------
 // GET all categories
 router.get("/categories", async (_req, res) => {
   const { data, error } = await supabase
