@@ -15,6 +15,19 @@ const fieldMap = {
     interested_count: "interested_count",
 };
 
+function computeEventStatus(start_time, end_time, now = new Date()) {
+    const start = new Date(start_time);
+    const end = new Date(end_time);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return "Upcoming";
+    }
+
+    if (now >= start && now <= end) return "Ongoing";
+    if (now > end) return "Ended";
+    return "Upcoming";
+}
+
 // ------------------- EVENT ROUTES -------------------
 
 // [Person 3: Event details] GET full event with photos (used by Single Event Details page)
@@ -126,16 +139,10 @@ router.get("/events/:id/status", async (req, res) => {
         if (!data || data.length === 0)
             return res.status(404).json({ error: "Event not found" });
 
-        const { start_time, end_time } = data[0];
-        const now = new Date();
-        const start = new Date(start_time);
-        const end = new Date(end_time);
+    const { start_time, end_time } = data[0];
+    const status = computeEventStatus(start_time, end_time);
 
-        let status = "Upcoming";
-        if (now >= start && now <= end) status = "Ongoing";
-        else if (now > end) status = "Ended";
-
-        res.json({ event_id: idNum, status });
+    res.json({ event_id: idNum, status });
     } catch (err) {
         console.error(`❌ Failed to fetch status for event ${id}:`, err.message);
         res.status(500).json({ error: "Failed to fetch event status" });
@@ -296,3 +303,4 @@ router.get("/events/:id/interested_counts", async (req, res) => { // Route to ge
 }); // End GET route
 
 module.exports = router; // Export router module
+module.exports.computeEventStatus = computeEventStatus;

@@ -19,6 +19,19 @@ import ArrowLeftIcon from '../icons/arrow-left.svg';
 
 const API_BASE_URL = API;
 
+export function formatEventDate(dateString) {
+    if (!dateString) return 'N/A';
+    const options = {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    };
+    return new Date(dateString).toLocaleString('en-US', options);
+}
+
 export default function SingleEventDetailPage() {
     // [Shared page state]
     const [event, setEvent] = useState(null);
@@ -30,6 +43,8 @@ export default function SingleEventDetailPage() {
 
     // [Person 1] Carousel state
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // [Person 3] Expandable description state
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
     // [Person 2] Interested button state
@@ -123,19 +138,6 @@ export default function SingleEventDetailPage() {
     }, [eventId]);
 
     // [Person 3] Utility: format start/end times for display
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        const options = {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-        };
-        return new Date(dateString).toLocaleString('en-US', options);
-    };
-
     // [Person 1] Carousel controls
     const goToNextImage = () => {
         if (event?.event_photos?.length > 1) {
@@ -290,8 +292,8 @@ export default function SingleEventDetailPage() {
     }
 
     // [Person 3] Compute date range for details section
-    const startDate = formatDate(event.start_time);
-    const endDate = formatDate(event.end_time);
+    const startDate = formatEventDate(event.start_time);
+    const endDate = formatEventDate(event.end_time);
     const dateRange = startDate && endDate ? `${startDate} - ${endDate}` : startDate || endDate || 'N/A';
 
     return (
